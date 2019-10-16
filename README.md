@@ -15,4 +15,4 @@ Preprocesses the text/set of text in the following way :
  - 4. Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens 'new', york' to a single token 'new_york'. 
  - 5. Frequency Subsampling : discards unfrequent words with a probability depending on their frequency. 
 
- 
+ Outputs a vocabulary file and the modified files. 

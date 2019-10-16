@@ -6,6 +6,7 @@
 
 Cleaning/Preprocessing functions
 """
+from utils.readers import checkExistenceDir, checkExistenceFile
 
 from utils.structure import get_vocab
 from utils.structure import melt_vocab_dic
@@ -25,15 +26,69 @@ from multiprocessing import cpu_count
 import json
 import gc
 import os
+import logging
 
-
-cpu = cpu_count()
+logging.getLogger('preprocessor')
 
 
 class PreprocessorConfig(object):
-    
+    """PreprocessorConfig is a util to write, load,
+    save preprocessors parameter configurations
+    """
+    def __init__(self, log_dir):
+        checkExistenceDir(log_dir)
+        self.log_dir = log_dir
 
-class Preprocessing(object):
+    def config(
+        self,
+        n_iter_phrases=1,
+        phrases_delta=0,
+        phrases_threshold=1e-3,
+        freq_threshold=1e-5,
+        filename="",
+        writing_dir="",
+        vocabulary_size=None,
+    ):
+        """Instantiate a new preprocessor configuration
+
+        Args
+            n_iter_phrases : float
+                number of iteration for word phrases detection, default : 1
+            phrases_delta : float
+                delta parameter in word phrase detection, default : 0
+            phrases_threshold : float
+                threshold parameter in word phrase detection, default : 1e-3
+            freq_threshold : float
+                frequency subsampling threshold, default : 1e-5
+            filename : list of str
+                place where the files to be preprocessed are stored
+            writing_dir : str
+                path where preprocessed files are going to be written
+            vocabulary_size : int
+                maximum size of the vocabulary
+        """
+        self.params = {}
+        self.params['n_iter_phrases'] = n_iter_phrases
+        self.params['phrases_delta'] = phrases_delta
+        self.params['phrases_threshold'] = phrases_threshold
+        self.params['freq_threshold'] = freq_threshold
+        self.params['filename'] = filename
+        checkExistenceDir(writing_dir)
+        self.params['writing_dir'] = writing_dir
+        self.params['vocabulary_size'] = vocabulary_size
+
+    def save_config(self):
+        """Saves the configuration class as a parameter json in the log_dir dir"""
+        with open(os.path.join(self.log_dir, 'PreprocessorConfig.json')) as f:
+            json.dump(self.params, f)
+
+    def read_config(self):
+        """Reads and existing config, that must be in the log_dir directory"""
+        with open(os.path.join(self.log_dir, 'PreprocessorConfig.json')) as f:
+            self.params = json.load(f)
+
+
+class Preprocessing(PreprocessorConfig):
     def __init__(
         self,
         n_iter_phrases=1,
