@@ -32,7 +32,7 @@ logging.getLogger('preprocessor')
 
 
 class PreprocessorConfig(object):
-    """PreprocessorConfig is a util to write, load,
+    """PreprocessorConfig is a util to write, load, and
     save preprocessors parameter configurations
     """
     def __init__(self, log_dir):
@@ -78,7 +78,8 @@ class PreprocessorConfig(object):
         self.params['vocabulary_size'] = vocabulary_size
 
     def save_config(self):
-        """Saves the configuration class as a parameter json in the log_dir dir"""
+        """Saves the configuration class as a parameter json in the log_dir
+        dir"""
         with open(os.path.join(self.log_dir, 'PreprocessorConfig.json')) as f:
             json.dump(self.params, f)
 
@@ -88,7 +89,28 @@ class PreprocessorConfig(object):
             self.params = json.load(f)
 
 
-class Preprocessing(PreprocessorConfig):
+class Preprocessor(PreprocessorConfig):
+    """A Preprocessor object inherits from a PreprocessorConfig object to
+    initialize its parameters. Then, it does 5 things :
+
+    1. Detects and replaces numbers/float by a generic token 'FLOAT', 'INT'
+    2. Add spaces in between punctuation so that tokenisation avoids adding
+    'word.' to the vocabulary instead of 'word', '.'.
+    3. Lowers words
+    4. Recursive word phrases detection : with a simple probabilistic rule,
+    gathers the tokens 'new', york' to a single token 'new_york'.
+    5. Frequency Subsampling : discards unfrequent words with a probability
+    depending on their frequency.
+
+    It works with 2 main methods, '.fit' and .'transform'. The first method
+    fits the vocabulary (which implies to lower, tokenize, do the word
+    phrase detection and frequency subsampling). Fitting the vocabulary implies
+    to calculate word frequencies over all the corpus, which can be a challenge
+    when parallelizing the code.
+    The 'transform' method then uses the learned vocabulary to re-write clean
+    files in the 'writing_dir' directory. This method is also parallelized over
+    all the cpus available.
+    """
     def __init__(
         self,
         n_iter_phrases=1,

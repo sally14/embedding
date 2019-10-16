@@ -13,9 +13,11 @@ def readArgs(args):
     type.
 
     Args
-        args : docopt generated argument dictionnary
+        args : dic
+            docopt generated argument dictionnary
     Returns
-        params : the dictionnary of corrected arguments
+        params : dic
+            the dictionnary of corrected arguments
     """
     params = {}
     for k in args.keys():
