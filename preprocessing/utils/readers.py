@@ -75,6 +75,7 @@ def openFile(filepath):
 def convertInt(s):
     """Tells if a string can be converted to int and converts it"""
     try:
+        int(s)
         return 'INT'
     except:
         return s
@@ -83,6 +84,7 @@ def convertInt(s):
 def convertFloat(s):
     """Tells if a string can be converted to float and converts it"""
     try:
+        float(s)
         return 'FLOAT'
     except:
         return s

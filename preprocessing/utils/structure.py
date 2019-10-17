@@ -39,7 +39,7 @@ def get_unigram_voc(text):
     return vocabulary
 
 
-def get_bigram_voc(text):
+def get_bigram_voc(text, parsing_char):
     """
     Builds a dictionnary, of unique bigrams & their occurences.
     Args :
@@ -54,8 +54,8 @@ def get_bigram_voc(text):
     bigrams = ngrams(words, 2)
     big_list = []
     for i in bigrams:
-        big_list.append('_'.join(i))
-    vocabulary = dict(Counter(words))
+        big_list.append(parsing_char.join(i))
+    vocabulary = dict(Counter(big_list))
     del bigrams
     del words
     del big_list

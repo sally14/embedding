@@ -26,8 +26,8 @@ from docopt import docopt
 
 sys.path.append("../preprocessing")
 sys.path.append('../utils')
-from utils.readers import readArgs
-from utils.preproc_multiproc import Preprocessing
+from preprocessing.utils.readers import readArgs
+from preprocessing.preprocessor import Preprocessor
 
 
 def preprocess(

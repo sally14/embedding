@@ -24,6 +24,7 @@ from nltk.tokenize import ToktokTokenizer
 from multiprocessing import Pool
 from multiprocessing import cpu_count
 from glob import glob
+from hashlib import sha1
 
 
 logger = logging.getLogger('preprocessor')
@@ -49,7 +50,7 @@ class PreprocessorConfig(object):
     ):
         """Instantiate a new preprocessor configuration
 
-        Args
+        Args:
             n_iter_phrases : float
                 number of iteration for word phrases detection, default : 1
             phrases_delta : float
@@ -118,18 +119,19 @@ class Preprocessor(PreprocessorConfig):
     all the cpus available.
     """
     def __init__(self, log_dir):
-        self.tok = ToktokTokenizer()
         self.log_dir = log_dir
         if checkExistenceFile(os.path.join(log_dir, 'PreprocessorConfig.json')):
             self.read_config()
+        self.tok = ToktokTokenizer()
+        self.parsing_char_ = sha1(b'sally14').hexdigest()
 
     def get_batches(self, filenames):
         """Defines the filename batches to multiprocess fitting and transformation
-        Args
+        Args:
             filenames : str or list of str
                 a list of files or a directory containing the files to fit/
                 transform the data on.
-        Returns
+        Returns:
             batches : list of list of str
                 the list of batches (lists of filenames)
         """
@@ -155,10 +157,10 @@ class Preprocessor(PreprocessorConfig):
     def fit_batch(self, filebatch):
         """
         Fits one batch
-        Args :
+        Args:
             filebatch : list of str
                 the list of file names in the given batch
-        Returns :
+        Returns:
             unig : dic
                 fitted unigram dictionnary
             big : dic
@@ -172,7 +174,7 @@ class Preprocessor(PreprocessorConfig):
             # delete_punctuation only delete punctuation if the option is
             # activated.
             unig = melt_vocab_dic(get_unigram_voc(cleaned_text), unig)
-            big = melt_vocab_dic(get_bigram_voc(cleaned_text), big)
+            big = melt_vocab_dic(get_bigram_voc(cleaned_text, self.parsing_char_), big)
             del text
             del cleaned_text
         return [unig, big]
@@ -181,11 +183,9 @@ class Preprocessor(PreprocessorConfig):
         """
         Parallelizes the fitting & definition of vocabulary, dumped in
         self.log_dir
-        Args :
+        Args:
             filenames : str or list of str
                 the list of file names in the given batch
-        Returns :
-            None
         """
         logger.info('Started fitting')
         batches = self.get_batches(filenames)
@@ -211,17 +211,22 @@ class Preprocessor(PreprocessorConfig):
         del results
         gc.collect()
         self.build_score()
+        self.phrasewords_ = {}
         self.phrasewords()
+        self.vocabulary_ = {}
         self.build_vocab()
         self.wordcount2freq()
+        self.subsample_freq_dic()
+
 
     def clean(self, text):
         """Parses a text, tokenize, lowers and replace ints and floats by a special token
-        Args
+        Args:
             text : str
                 a text represented as a string
-        Returns
-            a clean text
+        Returns:
+            words : str
+                a clean text
         """
         words = self.tok.tokenize(text)
         words = ' '.join(map(lambda x: convertFloat(convertInt(x.lower())),
@@ -233,26 +238,18 @@ class Preprocessor(PreprocessorConfig):
         Add bigram score to the 'bigram_dic_' dictionnary.
         bigram_dic_ = {bigram : occurences} becomes:
         bigram_dic_ = {bigram : (occurences, score)}
-        Args :
-            None
-        Returns :
-            None
         """
-        for bigrams in self.bigram_dic_:
+        for bigrams in self.bigram_dic_.keys():
             i, j = bigrams.split(self.parsing_char_)
-            score = (self.bigram_dic_[bigrams][0] - self.phrases_delta_) / (
+            score = (self.bigram_dic_[bigrams] - self.params['phrases_delta']) / (
                 self.unigram_dic_[i] * self.unigram_dic_[j]
             )
-            self.bigram_dic_[bigrams] = (self.bigram_dic_[bigrams][0], score)
+            self.bigram_dic_[bigrams] = (self.bigram_dic_[bigrams], score)
 
     def build_vocab(self):
         """
         Create a dictionnary 'vocabulary_' which contains unigrams and word
         phrases, with their occurences.
-        Args :
-            None
-        Returns :
-            None
         """
         copy_dict = self.unigram_dic_.copy()
         for word in self.bigram_dic_:
@@ -284,13 +281,9 @@ class Preprocessor(PreprocessorConfig):
         """
         Create a dictionnary 'phrasewords_' which contains word
         phrases, with their occurences.
-        Args :
-            None
-        Returns :
-            None
         """
         for bigrams in self.bigram_dic_:
-            if self.bigram_dic_[bigrams][1] > self.phrases_threshold_:
+            if self.bigram_dic_[bigrams][1] > self.params['phrases_threshold']:
                 self.phrasewords_[bigrams] = self.bigram_dic_[bigrams][0]
 
     def wordcount2freq(self):
@@ -298,10 +291,6 @@ class Preprocessor(PreprocessorConfig):
         Create the 'vocab_freq_' dictionnary : goes from a vocabulary_
         dictionnary with occurences to a dictionnary of the vocabulary with
         frequencies. Useful for frenquency subsampling.
-        Args :
-            None
-        Returns :
-            None
         """
         count = 0
         dico = self.vocabulary_
@@ -316,12 +305,8 @@ class Preprocessor(PreprocessorConfig):
     def subsample_freq_dic(self):
         """
         Vocab dictionnary frequency subsampling.
-        Args :
-            sentences : a batch of sentences as a list of words lists.
-        Returns :
-            sentences : the batch of subsampled sentences
         """
-        t = self.freq_threshold_
+        t = self.params['freq_threshold']
         vocab = self.vocab_freq_
         for word in self.vocab_freq_.keys():
             try:  # In some very rare cases, doesn't work
@@ -343,9 +328,9 @@ class Preprocessor(PreprocessorConfig):
         """
         Batch-per-batch word phrases gathering (in a single token, gathered
         with _ ).
-        Args :
+        Args:
             sentences : a batch of sentences as a list of words lists.
-        Returns :
+        Returns:
             sentences : the batch of sentences, with WP gathered
         """
         count = 0
@@ -489,10 +474,6 @@ class Preprocessor(PreprocessorConfig):
         fits scores & frequencies, batch per batch, and then transforms data,
         batch per batch too. It takes the data from data_dir and writes the
         cleaned data in writing_dir.
-        Args :
-            None
-        Returns :
-            None
         """
         if given_filebatch is None:
             # Get file names from the data directory :
