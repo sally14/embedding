@@ -61,3 +61,26 @@ def checkExistenceFile(path):
     path = os.path.abspath(path)
     return os.path.isfile(path)
 
+
+def openFile(filepath):
+    """Read lines of a txt file in 'filepath' and returns a string"""
+    assert checkExistenceFile(filepath), 'filepath does not exist'
+    with open(filepath, 'r', encoding='utf-8') as f:
+        text = ' '.join(map(lambda x: x.rstrip('\n'), f.readlines()))
+    return text
+
+
+def convertInt(s):
+    """Tells if a string can be converted to int and converts it"""
+    try:
+        return 'INT'
+    except:
+        return s
+
+
+def convertFloat(s):
+    """Tells if a string can be converted to float and converts it"""
+    try:
+        return 'FLOAT'
+    except:
+        return s

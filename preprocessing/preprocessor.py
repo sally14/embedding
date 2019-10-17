@@ -6,29 +6,28 @@
 
 Cleaning/Preprocessing functions
 """
-from utils.readers import checkExistenceDir, checkExistenceFile
 
-from utils.structure import get_vocab
+from utils.readers import checkExistenceDir, checkExistenceFile, openFile
+from utils.readers import convertFloat, convertInt
 from utils.structure import melt_vocab_dic
-from utils.structure import get_ngrams
-from utils.structure import sent2words
-from utils.structure import file2sent as file2sent_txt
-from collections import OrderedDict
-from hashlib import sha1
-from random import seed
-from random import uniform
-from numpy import sqrt
+from utils.structure import get_unigram_voc, get_bigram_voc
 
-# from glob import glob
-from string import punctuation
-from multiprocessing import Pool
-from multiprocessing import cpu_count
 import json
 import gc
 import os
 import logging
 
-logging.getLogger('preprocessor')
+from collections import OrderedDict
+from random import seed
+from random import uniform
+from numpy import sqrt
+from nltk.tokenize import ToktokTokenizer
+from multiprocessing import Pool
+from multiprocessing import cpu_count
+from glob import glob
+
+
+logger = logging.getLogger('preprocessor')
 
 
 class PreprocessorConfig(object):
@@ -45,7 +44,6 @@ class PreprocessorConfig(object):
         phrases_delta=0,
         phrases_threshold=1e-3,
         freq_threshold=1e-5,
-        filename="",
         writing_dir="",
         vocabulary_size=None,
     ):
@@ -60,8 +58,6 @@ class PreprocessorConfig(object):
                 threshold parameter in word phrase detection, default : 1e-3
             freq_threshold : float
                 frequency subsampling threshold, default : 1e-5
-            filename : list of str
-                place where the files to be preprocessed are stored
             writing_dir : str
                 path where preprocessed files are going to be written
             vocabulary_size : int
@@ -72,7 +68,6 @@ class PreprocessorConfig(object):
         self.params['phrases_delta'] = phrases_delta
         self.params['phrases_threshold'] = phrases_threshold
         self.params['freq_threshold'] = freq_threshold
-        self.params['filename'] = filename
         checkExistenceDir(writing_dir)
         self.params['writing_dir'] = writing_dir
         self.params['vocabulary_size'] = vocabulary_size
@@ -111,127 +106,74 @@ class Preprocessor(PreprocessorConfig):
     files in the 'writing_dir' directory. This method is also parallelized over
     all the cpus available.
     """
-    def __init__(
-        self,
-        n_iter_phrases=1,
-        freq_threshold=1e-5,
-        phrases_delta=0,
-        phrases_threshold=1e-3,
-        # data_dir='',
-        filenames="",
-        writing_dir="",
-        vocabulary_size=None,
-        del_punctuation=True,
-        disable_subsampling=True,
-        simple_file=False,
-        del_refs=True,
-        vocab_dir=None,
-        nb_batch=None,
-        wiki=True,
-    ):
-        self.n_iter_phrases_ = n_iter_phrases  # Nb. of wordphrases iterations
-        self.parsing_char_ = sha1(b"Posos").hexdigest()  # Hash parsing char
-        self.phrases_delta_ = phrases_delta  # Delta in Mik. wordphrases (WP)
-        self.phrases_threshold_ = phrases_threshold  # Threshold in Mik. WP
-        self.freq_threshold_ = freq_threshold  # Freq. subsampling threshold
-        self.unigram_dic_ = {}  # Stores unigrams & their occurences
-        self.unigram_freq_ = {}  # Stores unigrams & their frequencies
-        self.bigram_dic_ = {}  # Stores bigrams & their occurences
-        self.vocabulary_ = {"_-_OOV_-_": 0}
-        self.vocabulary_size_ = vocabulary_size
-        # Stores final vocab. (after WP : uni&bi-grams)
-        self.phrasewords_ = {}  # Stores word phrases
-        self.filenames = filenames
-        self.wiki = wiki
-        if self.wiki:
-            self.file2sent = file2sent_wiki
-        else:
-            self.file2sent = file2sent_txt
-        # self.data_dir_ = data_dir  # Data directory
-        # if not os.path.exists(writing_dir):
-        #     os.makedirs(writing_dir)
-        self.writing_dir_ = writing_dir  # Directory for writing prep. data
-        self.del_punctuation_ = del_punctuation  # If True, delete punctuation
-        self.disable_subsampling_ = disable_subsampling  # If True, no subsamp.
-        self.simple_file_ = simple_file  # True if the data_dir corresponds to
-        # a single file (and not a directory)
-        self.del_refs = del_refs
-        if vocab_dir is not None:
-            self.vocab_dir = vocab_dir
-        else:
-            self.vocab_dir = self.writing_dir_
-        if nb_batch is not None:
-            self.nb_batch = str(nb_batch)
-        else:
-            self.nb_batch = ""
+    def __init__(self):
+        self.tok = ToktokTokenizer()
 
-    def delete_punctuation(self, sentences):
+    def get_batches(self, filenames):
+        """Defines the filename batches to multiprocess fitting and transformation
+        Args
+            filenames : str or list of str
+                a list of files or a directory containing the files to fit/
+                transform the data on.
+        Returns
+            batches : list of list of str
+                the list of batches (lists of filenames)
         """
-        Args :
-            sentences :
-                list of sentences (list of word (strings))
-        Returns :
-            sentences :
-                list of sentences, without any punctuation
-        """
-        pun = punctuation
-        translator = str.maketrans(
-            " ", " ", pun.replace("_", "").replace("-", "")
-        )
-        # Only delete punctuation if del_punctuation is True
-        if self.del_punctuation_:
-            new_sent = []
-            for sent in sentences:
-                new_word = []
-                for word in sent:
-                    # str.translate() function is quicker than everything else
-                    new_word.append(word.translate(translator))
-                new_sent.append(new_word)
-        return new_sent
+        if type(filenames) == str:
+            if os.path.isdir(filenames):
+                ls = glob(os.path.join(filenames, '*'))
+        elif type(filenames) == list:
+            ls = filenames
+        else:
+            logger.error('Bad type for filenames, must be str or list of str')
+        batches = []
+        cpu = cpu_count()
+        n = len(ls)
+        if n >= cpu:
+            for i in range(cpu):
+                batches.append(ls[(n//cpu)*i:min(n, (n//cpu)*(i+1))])
+        else:
+            batches = list(map(lambda x: [x], ls))
+        assert len(batches) == min(cpu, n)
+        return batches
 
-    def get_unigram_voc(self, sentences):
+    def fit_batch(self, filebatch):
         """
-        Builds a dictionnary, batch per batch, of unique unigrams & their
-        occurences.
+        Fits one batch
         Args :
-            sentences :
-                list of sentences (list of word (strings))
+            filebatch : list of str
+                the list of file names in the given batch
         Returns :
-            None
+            unig : dic
+                fitted unigram dictionnary
+            big : dic
+                fitted bigram dictionnary
         """
-        words = sent2words(sentences)
-        vocabulary = get_vocab(words)  # Coded with Counter (collections)
-        del words
-        # Use melt_vocab_dic in order to be able to update occurences.
-        return vocabulary
+        unig = {}
+        big = {}
+        for file in filebatch:
+            text = openFile(file)
+            cleaned_text = self.clean(text)
+            # delete_punctuation only delete punctuation if the option is
+            # activated.
+            unig = melt_vocab_dic(get_unigram_voc(cleaned_text), unig)
+            big = melt_vocab_dic(get_bigram_voc(cleaned_text), big)
+            del text
+            del cleaned_text
+        return [unig, big]
 
-    def get_bigram_voc(self, sentences):
+    def clean(self, text):
+        """Parses a text, tokenize, lowers and replace ints and floats by a special token
+        Args
+            text : str
+                a text represented as a string
+        Returns
+            a clean text
         """
-        Builds a dictionnary, batch per batch, of unique bigrams & their
-        occurences.
-        Args :
-            sentences :
-                list of sentences (list of word (strings))
-        Returns :
-            None
-        """
-        bigrams = get_ngrams(sentences, 2)  # Generating bigrams
-        for i in range(len(bigrams)):
-            for j in range(len(bigrams[i])):
-                # Gathering bigrams with a hash string 'parsing_char'
-                # Hash strings prevents catching a "_" that could be in corpus
-                bigrams[i][j] = self.parsing_char_.join(bigrams[i][j])
-        words = sent2words(bigrams)
-        vocabulary = get_vocab(words)
-        del words
-        del bigrams
-        # Format vocabulary to be able to melt it with
-        # {bigram : (occurences, score)} when iterating word phrases.
-        # melt_vocab_dic adds occurences, so at step n, 0 will add nothing to
-        # the score that was computed at step n-1.
-        for key in vocabulary:
-            vocabulary[key] = (vocabulary[key], 0)
-        return vocabulary
+        words = self.tok.tokenize(text)
+        words = ' '.join(map(lambda x: convertFloat(convertInt(x.lower())),
+                             words))
+        return words
 
     def build_score(self):
         """
@@ -317,48 +259,6 @@ class Preprocessor(PreprocessorConfig):
             newkey = i.replace(self.parsing_char_, "_", 1)
             dico2[newkey] = dico[i] / count
         self.vocab_freq_ = dico2
-
-    def fit(self, filenames):
-        """
-        Batches are the different files in 'filenames'. Fit method sees all the
-        batches in filenames, to feed unigram_dic_ and bigram_dic_ with word
-        occurences. Then, it computes score, frequencies, etc.
-        Args :
-            filenames : the list on file names (string)
-        Returns :
-            None
-        """
-        for file in filenames:  # = For each batch
-            sentences = self.delete_punctuation(self.file2sent(file))
-            # delete_punctuation only delete punctuation if the option is
-            # activated.
-            self.build_unigram_voc(sentences)
-            self.build_bigram_voc(sentences)
-        self.build_score()
-        self.phrasewords()
-        self.build_vocab()
-        self.wordcount2freq()
-
-    def fit_map(self, filebatch):
-        """
-        Batches are the different files in 'filenames'. Fit method sees all the
-        batches in filenames, to feed unigram_dic_ and bigram_dic_ with word
-        occurences. Then, it computes score, frequencies, etc.
-        Args :
-            filenames : the list on file names (string)
-        Returns :
-            None
-        """
-        unig = {}
-        big = {}
-        for file in filebatch:
-            sentences = self.delete_punctuation(self.file2sent(file))
-            # delete_punctuation only delete punctuation if the option is
-            # activated.
-            unig = melt_vocab_dic(self.get_unigram_voc(sentences), unig)
-            big = melt_vocab_dic(self.get_bigram_voc(sentences), big)
-            del sentences
-        return [unig, big]
 
     def subsample_freq_dic(self):
         """
