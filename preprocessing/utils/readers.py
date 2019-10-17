@@ -51,7 +51,9 @@ def checkExistenceDir(path):
     """
     path = os.path.abspath(path)
     if not os.path.isdir(path):
-        logger.warning('Directory does not seem to exist, creating one.')
+        logger.warning(
+            'Directory {} does not seem to exist, creating one.'.format(path)
+            )
         os.mkdir(path)
 
 

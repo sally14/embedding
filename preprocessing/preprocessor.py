@@ -6,11 +6,10 @@
 
 Cleaning/Preprocessing functions
 """
-
-from utils.readers import checkExistenceDir, checkExistenceFile, openFile
-from utils.readers import convertFloat, convertInt
-from utils.structure import melt_vocab_dic
-from utils.structure import get_unigram_voc, get_bigram_voc
+from preprocessing.utils.readers import checkExistenceDir, checkExistenceFile, openFile
+from preprocessing.utils.readers import convertFloat, convertInt
+from preprocessing.utils.structure import melt_vocab_dic
+from preprocessing.utils.structure import get_unigram_voc, get_bigram_voc
 
 import json
 import gc
@@ -37,8 +36,9 @@ class PreprocessorConfig(object):
     def __init__(self, log_dir):
         checkExistenceDir(log_dir)
         self.log_dir = log_dir
+        self.has_config = False
 
-    def config(
+    def set_config(
         self,
         n_iter_phrases=1,
         phrases_delta=0,
@@ -71,17 +71,28 @@ class PreprocessorConfig(object):
         checkExistenceDir(writing_dir)
         self.params['writing_dir'] = writing_dir
         self.params['vocabulary_size'] = vocabulary_size
+        self.has_config = True
 
     def save_config(self):
         """Saves the configuration class as a parameter json in the log_dir
         dir"""
-        with open(os.path.join(self.log_dir, 'PreprocessorConfig.json')) as f:
-            json.dump(self.params, f)
+        if self.has_config:
+            with open(os.path.join(
+                    self.log_dir,
+                    'PreprocessorConfig.json'),
+                    'w') as f:
+                json.dump(self.params, f)
+        else:
+            logger.error('PreprocessorConfig has not been configurated')
 
     def read_config(self):
-        """Reads and existing config, that must be in the log_dir directory"""
-        with open(os.path.join(self.log_dir, 'PreprocessorConfig.json')) as f:
+        """Reads an existing config, that must be in the log_dir directory"""
+        with open(os.path.join(
+                self.log_dir,
+                'PreprocessorConfig.json'),
+                  'r') as f:
             self.params = json.load(f)
+        self.has_config = True
 
 
 class Preprocessor(PreprocessorConfig):
@@ -106,8 +117,11 @@ class Preprocessor(PreprocessorConfig):
     files in the 'writing_dir' directory. This method is also parallelized over
     all the cpus available.
     """
-    def __init__(self):
+    def __init__(self, log_dir):
         self.tok = ToktokTokenizer()
+        self.log_dir = log_dir
+        if checkExistenceFile(os.path.join(log_dir, 'PreprocessorConfig.json')):
+            self.read_config()
 
     def get_batches(self, filenames):
         """Defines the filename batches to multiprocess fitting and transformation
@@ -130,8 +144,9 @@ class Preprocessor(PreprocessorConfig):
         cpu = cpu_count()
         n = len(ls)
         if n >= cpu:
-            for i in range(cpu):
-                batches.append(ls[(n//cpu)*i:min(n, (n//cpu)*(i+1))])
+            for i in range(cpu-1):
+                batches.append(ls[(n//cpu)*i:(n//cpu)*(i+1)])
+            batches.append(ls[(n//cpu)*(cpu-1):])
         else:
             batches = list(map(lambda x: [x], ls))
         assert len(batches) == min(cpu, n)
@@ -161,6 +176,44 @@ class Preprocessor(PreprocessorConfig):
             del text
             del cleaned_text
         return [unig, big]
+
+    def fit(self, filenames):
+        """
+        Parallelizes the fitting & definition of vocabulary, dumped in
+        self.log_dir
+        Args :
+            filenames : str or list of str
+                the list of file names in the given batch
+        Returns :
+            None
+        """
+        logger.info('Started fitting')
+        batches = self.get_batches(filenames)
+        logger.info('Defined {} batches for multiprocessing'.format(cpu_count()))
+        logger.info('Starting parallelized fitting')
+        pool = Pool(processes=cpu_count())
+        results = pool.map(self.fit_batch, batches)
+        pool.close()
+        pool.terminate()
+        pool.join()
+        logger.info('Received {} batches results')
+        logger.info('Melting unigram and bigrams dictionnaries')
+        self.unigram_dic_ = {}
+        self.bigram_dic_ = {}
+        for j in range(len(results)):
+            self.unigram_dic_ = melt_vocab_dic(
+                self.unigram_dic_, results[j][0]
+            )
+            self.bigram_dic_ = melt_vocab_dic(
+                self.bigram_dic_, results[j][1]
+            )
+            results[j] = 0  # Clears memory
+        del results
+        gc.collect()
+        self.build_score()
+        self.phrasewords()
+        self.build_vocab()
+        self.wordcount2freq()
 
     def clean(self, text):
         """Parses a text, tokenize, lowers and replace ints and floats by a special token
@@ -277,7 +330,7 @@ class Preprocessor(PreprocessorConfig):
                 prob = 1 - sqrt(t / freq)
                 # Simulating a uniform [0,1]
                 # First initiate a random seed
-                seed("POSOS")  # random.seed() function hashes strings
+                seed("sally14")  # random.seed() function hashes strings
                 # Simulate a binomial B(prob)
                 x = uniform(0, 1)
                 if x < prob:
