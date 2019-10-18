@@ -35,7 +35,7 @@ Second, the preprocessor modifies the given files and writes it.</p>
 <p>During each execution of the fit method, a summary is generated, giving some
 statistics about the corpus.</p>
 <p>Example :</p>
-<pre><code class="python">config = PreprocessorConfig(writing_dir='/tmp/logdir')
+<pre><code class="python">config = PreprocessorConfig('/tmp/logdir')
 config.set_config(writing_dir='/tmp/outputs')
 config.save_config()
 
@@ -44,7 +44,7 @@ prep = Preprocessor('/tmp/logdir')
 prep.fit('~/mydata/')
 prep.get_summary()
 prep.save_word_phrases()
-prep.transform()
+prep.transform('~/mydata')
 </code></pre>
 <details class="source">
 <summary>
@@ -74,7 +74,7 @@ statistics about the corpus.
 Example :
 
 ```python
-config = PreprocessorConfig(writing_dir=&#39;/tmp/logdir&#39;)
+config = PreprocessorConfig(&#39;/tmp/logdir&#39;)
 config.set_config(writing_dir=&#39;/tmp/outputs&#39;)
 config.save_config()
 
@@ -83,7 +83,7 @@ prep = Preprocessor(&#39;/tmp/logdir&#39;)
 prep.fit(&#39;~/mydata/&#39;)
 prep.get_summary()
 prep.save_word_phrases()
-prep.transform()
+prep.transform(&#39;~/mydata&#39;)
 ```
 
 &#34;&#34;&#34;
@@ -130,7 +130,7 @@ class PreprocessorConfig(object):
         n_iter_phrases=1,
         phrases_delta=0,
         phrases_threshold=1e-3,
-        freq_threshold=1e-5,
+        freq_threshold=0.1,
         writing_dir=&#34;&#34;,
         vocabulary_size=None,
     ):
@@ -209,7 +209,7 @@ class Preprocessor(PreprocessorConfig):
     prep.fit(&#39;~/mydata/&#39;)
     prep.get_summary()
     prep.save_word_phrases()
-    prep.transform()
+    prep.transform(&#39;~/mydata&#39;)
     ```
     &#34;&#34;&#34;
 
@@ -321,7 +321,7 @@ class Preprocessor(PreprocessorConfig):
         self.fitted = True
         logger.info(&#34;Saving vocabulary&#34;)
         with open(
-            op.path.join(self.log_dir, &#34;vocabulary.json&#34;),
+            os.path.join(self.log_dir, &#34;vocabulary.json&#34;),
             &#34;w&#34;,
             encoding=&#34;utf-8&#34;,
         ) as f:
@@ -514,15 +514,15 @@ class Preprocessor(PreprocessorConfig):
             text = openFile(file)
             cleaned_text = self.clean(text)
             # Words phrases gathering
-            cleaned_text = self.phrasewords(cleaned_text)
+            cleaned_text = self.wordphrases(cleaned_text)
             # Frequency subsampling
             cleaned_text = &#34; &#34;.join(
-                map(
-                    lambda x: &#34;UNK&#34;
-                    if (x not in self.vocabulary_.keys())
-                    else x,
-                    cleaned_text.split(&#34; &#34;),
-                )
+               map(
+                   lambda x: &#34;UNK&#34;
+                   if (x not in self.vocabulary_.keys())
+                   else x,
+                   cleaned_text.split(&#34; &#34;)
+               )
             )
             with open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;) as f:
                 f.write(cleaned_text)
@@ -534,28 +534,35 @@ class Preprocessor(PreprocessorConfig):
             filenames : str or list of str
                 the list of file names in the given batch
         &#34;&#34;&#34;
-        logger.info(&#34;Started fitting&#34;)
-        batches = self.get_batches(filenames)
-        logger.info(
-            &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
-        )
-        logger.info(&#34;Starting parallelized transforming&#34;)
-        pool = Pool(processes=cpu_count())
-        pool.map(self.transform_batch, batches)
-        pool.close()
-        pool.terminate()
-        pool.join()
-        logger.info(&#34;Succesfully transformed all the files&#34;)
+        if not self.fitted:
+            logger.error(&#39;No fitting, aborting&#39;)
+        else:
+            logger.info(&#34;Started transform&#34;)
+            batches = self.get_batches(filenames)
+            logger.info(
+                &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+            )
+            logger.info(&#34;Starting parallelized transforming&#34;)
+            pool = Pool(processes=cpu_count())
+            pool.map(self.transform_batch, batches)
+            pool.close()
+            pool.terminate()
+            pool.join()
+            logger.info(&#34;Succesfully transformed all the files&#34;)
 
     def save_word_phrases(self):
         &#34;&#34;&#34;Saves word phrases as a json file in log_dir
         &#34;&#34;&#34;
+        cleaned_phrases = {
+            k.replace(self.parsing_char_, &#34;_&#34;): self.phrasewords_[k]
+            for k in self.phrasewords_.keys()
+        }
         with open(
             os.path.join(self.log_dir, &#34;WordPhrases.json&#34;),
             &#34;w&#34;,
             encoding=&#34;utf-8&#34;,
         ) as f:
-            json.dump(self.wordphrases, f)
+            json.dump(cleaned_phrases, f)
 
     def get_summary(self):
         &#34;&#34;&#34; Writes a summary of the fitting in the log_dir
@@ -563,31 +570,6 @@ class Preprocessor(PreprocessorConfig):
         with open(
             os.path.join(self.log_dir, &#34;summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
         ) as text:
-            text.write(&#34;Parameters: \n-------------------- \n&#34;)
-            text.write(
-                &#34;n_iter_phrases = &#34;
-                + str(self.n_iter_phrases_)
-                + &#34;\n&#34;
-                + &#34;freq_threshold = &#34;
-                + str(self.freq_threshold_)
-                + &#34;\n&#34;
-                + &#34;phrases_delta = &#34;
-                + str(self.phrases_delta_)
-                + &#34;\n&#34;
-                + &#34;phrases_threshold = &#34;
-                + str(self.phrases_threshold_)
-                + &#34;\n&#34;
-                # + &#39;data_dir = &#39; + str(self.data_dir_) + &#39;\n&#39;
-                + &#34;writing_dir = &#34;
-                + str(self.writing_dir_)
-                + &#34;\n&#34;
-                + &#34;del_punctuation = &#34;
-                + str(self.del_punctuation_)
-                + &#34;\n&#34;
-                + &#34;disable_subsampling = &#34;
-                + str(self.disable_subsampling_)
-                + &#34;\n \n&#34;
-            )
             text.write(&#34;Attributes: \n-------------------- \n&#34;)
             text.write(
                 &#34;len(unigram_dic_) : &#34;
@@ -667,7 +649,7 @@ all the cpus available.</p>
 prep.fit('~/mydata/')
 prep.get_summary()
 prep.save_word_phrases()
-prep.transform()
+prep.transform('~/mydata')
 </code></pre></section>
 <details class="source">
 <summary>
@@ -702,7 +684,7 @@ prep.transform()
     prep.fit(&#39;~/mydata/&#39;)
     prep.get_summary()
     prep.save_word_phrases()
-    prep.transform()
+    prep.transform(&#39;~/mydata&#39;)
     ```
     &#34;&#34;&#34;
 
@@ -814,7 +796,7 @@ prep.transform()
         self.fitted = True
         logger.info(&#34;Saving vocabulary&#34;)
         with open(
-            op.path.join(self.log_dir, &#34;vocabulary.json&#34;),
+            os.path.join(self.log_dir, &#34;vocabulary.json&#34;),
             &#34;w&#34;,
             encoding=&#34;utf-8&#34;,
         ) as f:
@@ -1007,15 +989,15 @@ prep.transform()
             text = openFile(file)
             cleaned_text = self.clean(text)
             # Words phrases gathering
-            cleaned_text = self.phrasewords(cleaned_text)
+            cleaned_text = self.wordphrases(cleaned_text)
             # Frequency subsampling
             cleaned_text = &#34; &#34;.join(
-                map(
-                    lambda x: &#34;UNK&#34;
-                    if (x not in self.vocabulary_.keys())
-                    else x,
-                    cleaned_text.split(&#34; &#34;),
-                )
+               map(
+                   lambda x: &#34;UNK&#34;
+                   if (x not in self.vocabulary_.keys())
+                   else x,
+                   cleaned_text.split(&#34; &#34;)
+               )
             )
             with open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;) as f:
                 f.write(cleaned_text)
@@ -1027,28 +1009,35 @@ prep.transform()
             filenames : str or list of str
                 the list of file names in the given batch
         &#34;&#34;&#34;
-        logger.info(&#34;Started fitting&#34;)
-        batches = self.get_batches(filenames)
-        logger.info(
-            &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
-        )
-        logger.info(&#34;Starting parallelized transforming&#34;)
-        pool = Pool(processes=cpu_count())
-        pool.map(self.transform_batch, batches)
-        pool.close()
-        pool.terminate()
-        pool.join()
-        logger.info(&#34;Succesfully transformed all the files&#34;)
+        if not self.fitted:
+            logger.error(&#39;No fitting, aborting&#39;)
+        else:
+            logger.info(&#34;Started transform&#34;)
+            batches = self.get_batches(filenames)
+            logger.info(
+                &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+            )
+            logger.info(&#34;Starting parallelized transforming&#34;)
+            pool = Pool(processes=cpu_count())
+            pool.map(self.transform_batch, batches)
+            pool.close()
+            pool.terminate()
+            pool.join()
+            logger.info(&#34;Succesfully transformed all the files&#34;)
 
     def save_word_phrases(self):
         &#34;&#34;&#34;Saves word phrases as a json file in log_dir
         &#34;&#34;&#34;
+        cleaned_phrases = {
+            k.replace(self.parsing_char_, &#34;_&#34;): self.phrasewords_[k]
+            for k in self.phrasewords_.keys()
+        }
         with open(
             os.path.join(self.log_dir, &#34;WordPhrases.json&#34;),
             &#34;w&#34;,
             encoding=&#34;utf-8&#34;,
         ) as f:
-            json.dump(self.wordphrases, f)
+            json.dump(cleaned_phrases, f)
 
     def get_summary(self):
         &#34;&#34;&#34; Writes a summary of the fitting in the log_dir
@@ -1056,31 +1045,6 @@ prep.transform()
         with open(
             os.path.join(self.log_dir, &#34;summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
         ) as text:
-            text.write(&#34;Parameters: \n-------------------- \n&#34;)
-            text.write(
-                &#34;n_iter_phrases = &#34;
-                + str(self.n_iter_phrases_)
-                + &#34;\n&#34;
-                + &#34;freq_threshold = &#34;
-                + str(self.freq_threshold_)
-                + &#34;\n&#34;
-                + &#34;phrases_delta = &#34;
-                + str(self.phrases_delta_)
-                + &#34;\n&#34;
-                + &#34;phrases_threshold = &#34;
-                + str(self.phrases_threshold_)
-                + &#34;\n&#34;
-                # + &#39;data_dir = &#39; + str(self.data_dir_) + &#39;\n&#39;
-                + &#34;writing_dir = &#34;
-                + str(self.writing_dir_)
-                + &#34;\n&#34;
-                + &#34;del_punctuation = &#34;
-                + str(self.del_punctuation_)
-                + &#34;\n&#34;
-                + &#34;disable_subsampling = &#34;
-                + str(self.disable_subsampling_)
-                + &#34;\n \n&#34;
-            )
             text.write(&#34;Attributes: \n-------------------- \n&#34;)
             text.write(
                 &#34;len(unigram_dic_) : &#34;
@@ -1288,7 +1252,7 @@ self.log_dir</p>
     self.fitted = True
     logger.info(&#34;Saving vocabulary&#34;)
     with open(
-        op.path.join(self.log_dir, &#34;vocabulary.json&#34;),
+        os.path.join(self.log_dir, &#34;vocabulary.json&#34;),
         &#34;w&#34;,
         encoding=&#34;utf-8&#34;,
     ) as f:
@@ -1407,31 +1371,6 @@ transform the data on.</dd>
     with open(
         os.path.join(self.log_dir, &#34;summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
     ) as text:
-        text.write(&#34;Parameters: \n-------------------- \n&#34;)
-        text.write(
-            &#34;n_iter_phrases = &#34;
-            + str(self.n_iter_phrases_)
-            + &#34;\n&#34;
-            + &#34;freq_threshold = &#34;
-            + str(self.freq_threshold_)
-            + &#34;\n&#34;
-            + &#34;phrases_delta = &#34;
-            + str(self.phrases_delta_)
-            + &#34;\n&#34;
-            + &#34;phrases_threshold = &#34;
-            + str(self.phrases_threshold_)
-            + &#34;\n&#34;
-            # + &#39;data_dir = &#39; + str(self.data_dir_) + &#39;\n&#39;
-            + &#34;writing_dir = &#34;
-            + str(self.writing_dir_)
-            + &#34;\n&#34;
-            + &#34;del_punctuation = &#34;
-            + str(self.del_punctuation_)
-            + &#34;\n&#34;
-            + &#34;disable_subsampling = &#34;
-            + str(self.disable_subsampling_)
-            + &#34;\n \n&#34;
-        )
         text.write(&#34;Attributes: \n-------------------- \n&#34;)
         text.write(
             &#34;len(unigram_dic_) : &#34;
@@ -1503,12 +1442,16 @@ phrases, with their occurences.</p></section>
 <pre><code class="python">def save_word_phrases(self):
     &#34;&#34;&#34;Saves word phrases as a json file in log_dir
     &#34;&#34;&#34;
+    cleaned_phrases = {
+        k.replace(self.parsing_char_, &#34;_&#34;): self.phrasewords_[k]
+        for k in self.phrasewords_.keys()
+    }
     with open(
         os.path.join(self.log_dir, &#34;WordPhrases.json&#34;),
         &#34;w&#34;,
         encoding=&#34;utf-8&#34;,
     ) as f:
-        json.dump(self.wordphrases, f)</code></pre>
+        json.dump(cleaned_phrases, f)</code></pre>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.Preprocessor.subsample_freq_dic"><code class="name flex">
@@ -1581,18 +1524,21 @@ to discard the word.</p></section>
         filenames : str or list of str
             the list of file names in the given batch
     &#34;&#34;&#34;
-    logger.info(&#34;Started fitting&#34;)
-    batches = self.get_batches(filenames)
-    logger.info(
-        &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
-    )
-    logger.info(&#34;Starting parallelized transforming&#34;)
-    pool = Pool(processes=cpu_count())
-    pool.map(self.transform_batch, batches)
-    pool.close()
-    pool.terminate()
-    pool.join()
-    logger.info(&#34;Succesfully transformed all the files&#34;)</code></pre>
+    if not self.fitted:
+        logger.error(&#39;No fitting, aborting&#39;)
+    else:
+        logger.info(&#34;Started transform&#34;)
+        batches = self.get_batches(filenames)
+        logger.info(
+            &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+        )
+        logger.info(&#34;Starting parallelized transforming&#34;)
+        pool = Pool(processes=cpu_count())
+        pool.map(self.transform_batch, batches)
+        pool.close()
+        pool.terminate()
+        pool.join()
+        logger.info(&#34;Succesfully transformed all the files&#34;)</code></pre>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.Preprocessor.transform_batch"><code class="name flex">
@@ -1626,15 +1572,15 @@ replacing subsampled words by UNK token.</p>
         text = openFile(file)
         cleaned_text = self.clean(text)
         # Words phrases gathering
-        cleaned_text = self.phrasewords(cleaned_text)
+        cleaned_text = self.wordphrases(cleaned_text)
         # Frequency subsampling
         cleaned_text = &#34; &#34;.join(
-            map(
-                lambda x: &#34;UNK&#34;
-                if (x not in self.vocabulary_.keys())
-                else x,
-                cleaned_text.split(&#34; &#34;),
-            )
+           map(
+               lambda x: &#34;UNK&#34;
+               if (x not in self.vocabulary_.keys())
+               else x,
+               cleaned_text.split(&#34; &#34;)
+           )
         )
         with open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;) as f:
             f.write(cleaned_text)</code></pre>
@@ -1776,7 +1722,7 @@ save preprocessors parameter configurations</p></section>
         n_iter_phrases=1,
         phrases_delta=0,
         phrases_threshold=1e-3,
-        freq_threshold=1e-5,
+        freq_threshold=0.1,
         writing_dir=&#34;&#34;,
         vocabulary_size=None,
     ):
@@ -1872,7 +1818,7 @@ dir</p></section>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.PreprocessorConfig.set_config"><code class="name flex">
-<span>def <span class="ident">set_config</span></span>(<span>self, n_iter_phrases=1, phrases_delta=0, phrases_threshold=0.001, freq_threshold=1e-05, writing_dir='', vocabulary_size=None)</span>
+<span>def <span class="ident">set_config</span></span>(<span>self, n_iter_phrases=1, phrases_delta=0, phrases_threshold=0.001, freq_threshold=0.1, writing_dir='', vocabulary_size=None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Instantiate a new preprocessor configuration</p>
@@ -1900,7 +1846,7 @@ dir</p></section>
     n_iter_phrases=1,
     phrases_delta=0,
     phrases_threshold=1e-3,
-    freq_threshold=1e-5,
+    freq_threshold=0.1,
     writing_dir=&#34;&#34;,
     vocabulary_size=None,
 ):
