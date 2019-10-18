@@ -1,10 +1,39 @@
 """
---------------------------------------------------------------------------------
-                        Multiprocessed Preprocessing
---------------------------------------------------------------------------------
+
+#                        Multiprocessed Preprocessing
 
 
-Cleaning/Preprocessing functions
+Classes for parallelized preprocessing of text. Contains two main classes :
+
+- **PreprocessorConfig**, which is a tool to define, save, and read
+preprocessing configurations : parameters, .
+- **Preprocessor**, which is the tool to preprocess a large amount of file in
+an optimized way.
+
+The preprocessing is made of two main parts : first, the preprocessor has to
+clean, and then learn all the unigram and bigram frequencies dictionnaries over
+the corpus, to do word phrases detection and frequency subsampling.
+Second, the preprocessor modifies the given files and writes it.
+
+During each execution of the fit method, a summary is generated, giving some
+statistics about the corpus.
+
+
+Example :
+
+```python
+config = PreprocessorConfig(writing_dir='/tmp/logdir')
+config.set_config(writing_dir='/tmp/outputs')
+config.save_config()
+
+
+prep = Preprocessor('/tmp/logdir')
+prep.fit('~/mydata/')
+prep.get_summary()
+prep.savewordphrases()
+prep.transform()
+```
+
 """
 from preprocessing.utils.readers import checkExistenceDir, checkExistenceFile, openFile
 from preprocessing.utils.readers import convertFloat, convertInt
@@ -117,6 +146,16 @@ class Preprocessor(PreprocessorConfig):
     The 'transform' method then uses the learned vocabulary to re-write clean
     files in the 'writing_dir' directory. This method is also parallelized over
     all the cpus available.
+
+    Usage example:
+    ```python
+    prep = Preprocessor('/tmp/logdir')  # We suppose we already have a
+    # PreprocessorConfig saved in /tmp/logdir
+    prep.fit('~/mydata/')
+    prep.get_summary()
+    prep.savewordphrases()
+    prep.transform()
+    ```
     """
     def __init__(self, log_dir):
         self.log_dir = log_dir
@@ -305,6 +344,9 @@ class Preprocessor(PreprocessorConfig):
     def subsample_freq_dic(self):
         """
         Vocab dictionnary frequency subsampling.
+        $$p = 1 - \sqrt{\frac{t}{f}}$$
+        With $f$ the frequency of a given word, and $p$ probability 
+        to discard the word.
         """
         t = self.params['freq_threshold']
         vocab = self.vocab_freq_

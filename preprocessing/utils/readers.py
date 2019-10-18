@@ -1,5 +1,7 @@
 """
-Contains utils functions to parse args from docopt (not always in the right format)
+# Readers
+
+Contains utils functions to parse args from docopt (not always in the right format), to check if directories exist, to convert strings to int/float etc.
 """
 import os
 import logging
@@ -12,10 +14,10 @@ def readArgs(args):
     For instance, int, floats, booleans need to be converted back to their
     type.
 
-    Args
+    Args:
         args : dic
             docopt generated argument dictionnary
-    Returns
+    Returns:
         params : dic
             the dictionnary of corrected arguments
     """
@@ -36,7 +38,12 @@ def readArgs(args):
 
 
 def str2bool(s):
-    """Helps to convert a string representing a boolean into the boolean"""
+    """Helps to convert a string representing a boolean into the boolean
+    Args:
+        s : str
+    Returns:
+        b : boolean
+    """
     if s == 'True':
         return True
     elif s == 'False':
@@ -48,6 +55,9 @@ def str2bool(s):
 def checkExistenceDir(path):
     """Checks if a given path is the path of a directory, and if not, creates
     the directory.
+    Args:
+        path : str
+            A string representing a path
     """
     path = os.path.abspath(path)
     if not os.path.isdir(path):
@@ -59,13 +69,23 @@ def checkExistenceDir(path):
 
 def checkExistenceFile(path):
     """Checks if a given path is the path of a directory.
+    Args:
+        path : str
+            A string representing a path
     """
     path = os.path.abspath(path)
     return os.path.isfile(path)
 
 
 def openFile(filepath):
-    """Read lines of a txt file in 'filepath' and returns a string"""
+    """Read lines of a txt file in 'filepath' and returns a string
+    Args:
+        path : str
+            A string representing a path
+    Returns:
+        text : str
+            The text string
+    """
     assert checkExistenceFile(filepath), 'filepath does not exist'
     with open(filepath, 'r', encoding='utf-8') as f:
         text = ' '.join(map(lambda x: x.rstrip('\n'), f.readlines()))
@@ -73,7 +93,13 @@ def openFile(filepath):
 
 
 def convertInt(s):
-    """Tells if a string can be converted to int and converts it"""
+    """Tells if a string can be converted to int and converts it
+    Args:
+        s : str
+    Returns:
+        s : str
+            Standardized token 'INT' if s can be turned to an int, s otherwise
+    """
     try:
         int(s)
         return 'INT'
@@ -82,7 +108,13 @@ def convertInt(s):
 
 
 def convertFloat(s):
-    """Tells if a string can be converted to float and converts it"""
+    """Tells if a string can be converted to float and converts it
+    Args:
+        s : str
+    Returns:
+        s : str
+            Standardized token 'FLOAT' if s can be turned to an float, s
+            otherwise"""
     try:
         float(s)
         return 'FLOAT'

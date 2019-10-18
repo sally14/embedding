@@ -1,7 +1,5 @@
 """
---------------------------------------------------------------------------------
-                                Structure Utils
---------------------------------------------------------------------------------
+#                                Structure Utils
 
 Functions changing the text data structure
 """
@@ -11,6 +9,15 @@ from collections import Counter
 
 
 def melt_vocab_dic(vocab1, vocab2):
+    """Melts vocab dictionnary by adding the counts of each words.
+    Vocab dictionnaries must be s.t.:
+    vocab = {'word' : count_occurencies_word}
+    Args:
+        vocab1 : dic
+        vocab2 : dic
+    Returns:
+        vocab : dic
+    """
     for word in vocab2:
         if word in vocab1:
             vocab1[word] = vocab1[word] + vocab2[word]
@@ -23,11 +30,11 @@ def get_unigram_voc(text):
     """
     Builds a dictionnary, batch per batch, of unique unigrams & their
     occurences.
-    Args :
+    Args:
         text : str
             a text that is assumed to be cleaned with the preprocessors cleaning
             method
-    Returns :
+    Returns:
         vocabulary : dic
             a dictionnary {'word' : count_word}
     """
@@ -42,11 +49,11 @@ def get_unigram_voc(text):
 def get_bigram_voc(text, parsing_char):
     """
     Builds a dictionnary, of unique bigrams & their occurences.
-    Args :
+    Args:
         text : str
             a text that is assumed to be cleaned with the preprocessor cleaning
             method
-    Returns :
+    Returns:
         vocab : dic
             a dictionnary {'bigram' : count_bigram}
     """

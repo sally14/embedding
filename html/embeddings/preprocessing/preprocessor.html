@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.1" />
 <title>embeddings.preprocessing.preprocessor API documentation</title>
-<meta name="description" content="Multiprocessed Preprocessing
-…" />
+<meta name="description" content="Multiprocessed Preprocessing …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -21,22 +20,72 @@
 <h1 class="title">Module <code>embeddings.preprocessing.preprocessor</code></h1>
 </header>
 <section id="section-intro">
-<hr>
-<pre><code>                    Multiprocessed Preprocessing
+<h1 id="multiprocessed-preprocessing">Multiprocessed Preprocessing</h1>
+<p>Classes for parallelized preprocessing of text. Contains two main classes :</p>
+<ul>
+<li><strong>PreprocessorConfig</strong>, which is a tool to define, save, and read
+preprocessing configurations : parameters, .</li>
+<li><strong>Preprocessor</strong>, which is the tool to preprocess a large amount of file in
+an optimized way.</li>
+</ul>
+<p>The preprocessing is made of two main parts : first, the preprocessor has to
+clean, and then learn all the unigram and bigram frequencies dictionnaries over
+the corpus, to do word phrases detection and frequency subsampling.
+Second, the preprocessor modifies the given files and writes it.</p>
+<p>During each execution of the fit method, a summary is generated, giving some
+statistics about the corpus.</p>
+<p>Example :</p>
+<pre><code class="python">config = PreprocessorConfig(writing_dir='/tmp/logdir')
+config.set_config(writing_dir='/tmp/outputs')
+config.save_config()
+
+
+prep = Preprocessor('/tmp/logdir')
+prep.fit('~/mydata/')
+prep.get_summary()
+prep.savewordphrases()
+prep.transform()
 </code></pre>
-<hr>
-<p>Cleaning/Preprocessing functions</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
---------------------------------------------------------------------------------
-                        Multiprocessed Preprocessing
---------------------------------------------------------------------------------
+
+#                        Multiprocessed Preprocessing
 
 
-Cleaning/Preprocessing functions
+Classes for parallelized preprocessing of text. Contains two main classes :
+
+- **PreprocessorConfig**, which is a tool to define, save, and read
+preprocessing configurations : parameters, .
+- **Preprocessor**, which is the tool to preprocess a large amount of file in
+an optimized way.
+
+The preprocessing is made of two main parts : first, the preprocessor has to
+clean, and then learn all the unigram and bigram frequencies dictionnaries over
+the corpus, to do word phrases detection and frequency subsampling.
+Second, the preprocessor modifies the given files and writes it.
+
+During each execution of the fit method, a summary is generated, giving some
+statistics about the corpus.
+
+
+Example :
+
+```python
+config = PreprocessorConfig(writing_dir=&#39;/tmp/logdir&#39;)
+config.set_config(writing_dir=&#39;/tmp/outputs&#39;)
+config.save_config()
+
+
+prep = Preprocessor(&#39;/tmp/logdir&#39;)
+prep.fit(&#39;~/mydata/&#39;)
+prep.get_summary()
+prep.savewordphrases()
+prep.transform()
+```
+
 &#34;&#34;&#34;
 from preprocessing.utils.readers import checkExistenceDir, checkExistenceFile, openFile
 from preprocessing.utils.readers import convertFloat, convertInt
@@ -149,6 +198,16 @@ class Preprocessor(PreprocessorConfig):
     The &#39;transform&#39; method then uses the learned vocabulary to re-write clean
     files in the &#39;writing_dir&#39; directory. This method is also parallelized over
     all the cpus available.
+
+    Usage example:
+    ```python
+    prep = Preprocessor(&#39;/tmp/logdir&#39;)  # We suppose we already have a
+    # PreprocessorConfig saved in /tmp/logdir
+    prep.fit(&#39;~/mydata/&#39;)
+    prep.get_summary()
+    prep.savewordphrases()
+    prep.transform()
+    ```
     &#34;&#34;&#34;
     def __init__(self, log_dir):
         self.log_dir = log_dir
@@ -337,6 +396,9 @@ class Preprocessor(PreprocessorConfig):
     def subsample_freq_dic(self):
         &#34;&#34;&#34;
         Vocab dictionnary frequency subsampling.
+        $$p = 1 - \sqrt{\frac{t}{f}}$$
+        With $f$ the frequency of a given word, and $p$ probability 
+        to discard the word.
         &#34;&#34;&#34;
         t = self.params[&#39;freq_threshold&#39;]
         vocab = self.vocab_freq_
@@ -652,7 +714,15 @@ to calculate word frequencies over all the corpus, which can be a challenge
 when parallelizing the code.
 The 'transform' method then uses the learned vocabulary to re-write clean
 files in the 'writing_dir' directory. This method is also parallelized over
-all the cpus available.</p></section>
+all the cpus available.</p>
+<p>Usage example:</p>
+<pre><code class="python">prep = Preprocessor('/tmp/logdir')  # We suppose we already have a
+# PreprocessorConfig saved in /tmp/logdir
+prep.fit('~/mydata/')
+prep.get_summary()
+prep.savewordphrases()
+prep.transform()
+</code></pre></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -678,6 +748,16 @@ all the cpus available.</p></section>
     The &#39;transform&#39; method then uses the learned vocabulary to re-write clean
     files in the &#39;writing_dir&#39; directory. This method is also parallelized over
     all the cpus available.
+
+    Usage example:
+    ```python
+    prep = Preprocessor(&#39;/tmp/logdir&#39;)  # We suppose we already have a
+    # PreprocessorConfig saved in /tmp/logdir
+    prep.fit(&#39;~/mydata/&#39;)
+    prep.get_summary()
+    prep.savewordphrases()
+    prep.transform()
+    ```
     &#34;&#34;&#34;
     def __init__(self, log_dir):
         self.log_dir = log_dir
@@ -866,6 +946,9 @@ all the cpus available.</p></section>
     def subsample_freq_dic(self):
         &#34;&#34;&#34;
         Vocab dictionnary frequency subsampling.
+        $$p = 1 - \sqrt{\frac{t}{f}}$$
+        With $f$ the frequency of a given word, and $p$ probability 
+        to discard the word.
         &#34;&#34;&#34;
         t = self.params[&#39;freq_threshold&#39;]
         vocab = self.vocab_freq_
@@ -1652,7 +1735,10 @@ phrases, with their occurences.</p></section>
 <span>def <span class="ident">subsample_freq_dic</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Vocab dictionnary frequency subsampling.</p></section>
+<section class="desc"><p>Vocab dictionnary frequency subsampling.
+$$p = 1 - \sqrt{rac{t}{f}}$$
+With $f$ the frequency of a given word, and $p$ probability
+to discard the word.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1660,6 +1746,9 @@ phrases, with their occurences.</p></section>
 <pre><code class="python">def subsample_freq_dic(self):
     &#34;&#34;&#34;
     Vocab dictionnary frequency subsampling.
+    $$p = 1 - \sqrt{\frac{t}{f}}$$
+    With $f$ the frequency of a given word, and $p$ probability 
+    to discard the word.
     &#34;&#34;&#34;
     t = self.params[&#39;freq_threshold&#39;]
     vocab = self.vocab_freq_
@@ -2014,7 +2103,9 @@ dir</p></section>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#multiprocessed-preprocessing">Multiprocessed Preprocessing</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>

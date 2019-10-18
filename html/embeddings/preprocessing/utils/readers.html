@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.1" />
 <title>embeddings.preprocessing.utils.readers API documentation</title>
-<meta name="description" content="Contains utils functions to parse args from docopt (not always in the right format)" />
+<meta name="description" content="Readers …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -20,13 +20,16 @@
 <h1 class="title">Module <code>embeddings.preprocessing.utils.readers</code></h1>
 </header>
 <section id="section-intro">
-<p>Contains utils functions to parse args from docopt (not always in the right format)</p>
+<h1 id="readers">Readers</h1>
+<p>Contains utils functions to parse args from docopt (not always in the right format), to check if directories exist, to convert strings to int/float etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
-Contains utils functions to parse args from docopt (not always in the right format)
+# Readers
+
+Contains utils functions to parse args from docopt (not always in the right format), to check if directories exist, to convert strings to int/float etc.
 &#34;&#34;&#34;
 import os
 import logging
@@ -39,10 +42,10 @@ def readArgs(args):
     For instance, int, floats, booleans need to be converted back to their
     type.
 
-    Args
+    Args:
         args : dic
             docopt generated argument dictionnary
-    Returns
+    Returns:
         params : dic
             the dictionnary of corrected arguments
     &#34;&#34;&#34;
@@ -63,7 +66,12 @@ def readArgs(args):
 
 
 def str2bool(s):
-    &#34;&#34;&#34;Helps to convert a string representing a boolean into the boolean&#34;&#34;&#34;
+    &#34;&#34;&#34;Helps to convert a string representing a boolean into the boolean
+    Args:
+        s : str
+    Returns:
+        b : boolean
+    &#34;&#34;&#34;
     if s == &#39;True&#39;:
         return True
     elif s == &#39;False&#39;:
@@ -75,6 +83,9 @@ def str2bool(s):
 def checkExistenceDir(path):
     &#34;&#34;&#34;Checks if a given path is the path of a directory, and if not, creates
     the directory.
+    Args:
+        path : str
+            A string representing a path
     &#34;&#34;&#34;
     path = os.path.abspath(path)
     if not os.path.isdir(path):
@@ -86,13 +97,23 @@ def checkExistenceDir(path):
 
 def checkExistenceFile(path):
     &#34;&#34;&#34;Checks if a given path is the path of a directory.
+    Args:
+        path : str
+            A string representing a path
     &#34;&#34;&#34;
     path = os.path.abspath(path)
     return os.path.isfile(path)
 
 
 def openFile(filepath):
-    &#34;&#34;&#34;Read lines of a txt file in &#39;filepath&#39; and returns a string&#34;&#34;&#34;
+    &#34;&#34;&#34;Read lines of a txt file in &#39;filepath&#39; and returns a string
+    Args:
+        path : str
+            A string representing a path
+    Returns:
+        text : str
+            The text string
+    &#34;&#34;&#34;
     assert checkExistenceFile(filepath), &#39;filepath does not exist&#39;
     with open(filepath, &#39;r&#39;, encoding=&#39;utf-8&#39;) as f:
         text = &#39; &#39;.join(map(lambda x: x.rstrip(&#39;\n&#39;), f.readlines()))
@@ -100,7 +121,13 @@ def openFile(filepath):
 
 
 def convertInt(s):
-    &#34;&#34;&#34;Tells if a string can be converted to int and converts it&#34;&#34;&#34;
+    &#34;&#34;&#34;Tells if a string can be converted to int and converts it
+    Args:
+        s : str
+    Returns:
+        s : str
+            Standardized token &#39;INT&#39; if s can be turned to an int, s otherwise
+    &#34;&#34;&#34;
     try:
         int(s)
         return &#39;INT&#39;
@@ -109,7 +136,13 @@ def convertInt(s):
 
 
 def convertFloat(s):
-    &#34;&#34;&#34;Tells if a string can be converted to float and converts it&#34;&#34;&#34;
+    &#34;&#34;&#34;Tells if a string can be converted to float and converts it
+    Args:
+        s : str
+    Returns:
+        s : str
+            Standardized token &#39;FLOAT&#39; if s can be turned to an float, s
+            otherwise&#34;&#34;&#34;
     try:
         float(s)
         return &#39;FLOAT&#39;
@@ -129,7 +162,12 @@ def convertFloat(s):
 </code></dt>
 <dd>
 <section class="desc"><p>Checks if a given path is the path of a directory, and if not, creates
-the directory.</p></section>
+the directory.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>A string representing a path</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -137,6 +175,9 @@ the directory.</p></section>
 <pre><code class="python">def checkExistenceDir(path):
     &#34;&#34;&#34;Checks if a given path is the path of a directory, and if not, creates
     the directory.
+    Args:
+        path : str
+            A string representing a path
     &#34;&#34;&#34;
     path = os.path.abspath(path)
     if not os.path.isdir(path):
@@ -150,13 +191,21 @@ the directory.</p></section>
 <span>def <span class="ident">checkExistenceFile</span></span>(<span>path)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Checks if a given path is the path of a directory.</p></section>
+<section class="desc"><p>Checks if a given path is the path of a directory.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>A string representing a path</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def checkExistenceFile(path):
     &#34;&#34;&#34;Checks if a given path is the path of a directory.
+    Args:
+        path : str
+            A string representing a path
     &#34;&#34;&#34;
     path = os.path.abspath(path)
     return os.path.isfile(path)</code></pre>
@@ -166,13 +215,30 @@ the directory.</p></section>
 <span>def <span class="ident">convertFloat</span></span>(<span>s)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Tells if a string can be converted to float and converts it</p></section>
+<section class="desc"><p>Tells if a string can be converted to float and converts it</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>Standardized token 'FLOAT' if s can be turned to an float, s
+otherwise</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def convertFloat(s):
-    &#34;&#34;&#34;Tells if a string can be converted to float and converts it&#34;&#34;&#34;
+    &#34;&#34;&#34;Tells if a string can be converted to float and converts it
+    Args:
+        s : str
+    Returns:
+        s : str
+            Standardized token &#39;FLOAT&#39; if s can be turned to an float, s
+            otherwise&#34;&#34;&#34;
     try:
         float(s)
         return &#39;FLOAT&#39;
@@ -184,13 +250,29 @@ the directory.</p></section>
 <span>def <span class="ident">convertInt</span></span>(<span>s)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Tells if a string can be converted to int and converts it</p></section>
+<section class="desc"><p>Tells if a string can be converted to int and converts it</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>Standardized token 'INT' if s can be turned to an int, s otherwise</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def convertInt(s):
-    &#34;&#34;&#34;Tells if a string can be converted to int and converts it&#34;&#34;&#34;
+    &#34;&#34;&#34;Tells if a string can be converted to int and converts it
+    Args:
+        s : str
+    Returns:
+        s : str
+            Standardized token &#39;INT&#39; if s can be turned to an int, s otherwise
+    &#34;&#34;&#34;
     try:
         int(s)
         return &#39;INT&#39;
@@ -202,13 +284,30 @@ the directory.</p></section>
 <span>def <span class="ident">openFile</span></span>(<span>filepath)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Read lines of a txt file in 'filepath' and returns a string</p></section>
+<section class="desc"><p>Read lines of a txt file in 'filepath' and returns a string</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>A string representing a path</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>text</code></strong> :&ensp;<code>str</code></dt>
+<dd>The text string</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def openFile(filepath):
-    &#34;&#34;&#34;Read lines of a txt file in &#39;filepath&#39; and returns a string&#34;&#34;&#34;
+    &#34;&#34;&#34;Read lines of a txt file in &#39;filepath&#39; and returns a string
+    Args:
+        path : str
+            A string representing a path
+    Returns:
+        text : str
+            The text string
+    &#34;&#34;&#34;
     assert checkExistenceFile(filepath), &#39;filepath does not exist&#39;
     with open(filepath, &#39;r&#39;, encoding=&#39;utf-8&#39;) as f:
         text = &#39; &#39;.join(map(lambda x: x.rstrip(&#39;\n&#39;), f.readlines()))
@@ -222,12 +321,16 @@ the directory.</p></section>
 <section class="desc"><p>Reads and correct docopt parsed arguments from the command-line interface.
 For instance, int, floats, booleans need to be converted back to their
 type.</p>
-<p>Args
-args : dic
-docopt generated argument dictionnary
-Returns
-params : dic
-the dictionnary of corrected arguments</p></section>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>args</code></strong> :&ensp;<code>dic</code></dt>
+<dd>docopt generated argument dictionnary</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>params</code></strong> :&ensp;<code>dic</code></dt>
+<dd>the dictionnary of corrected arguments</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -237,10 +340,10 @@ the dictionnary of corrected arguments</p></section>
     For instance, int, floats, booleans need to be converted back to their
     type.
 
-    Args
+    Args:
         args : dic
             docopt generated argument dictionnary
-    Returns
+    Returns:
         params : dic
             the dictionnary of corrected arguments
     &#34;&#34;&#34;
@@ -264,13 +367,28 @@ the dictionnary of corrected arguments</p></section>
 <span>def <span class="ident">str2bool</span></span>(<span>s)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Helps to convert a string representing a boolean into the boolean</p></section>
+<section class="desc"><p>Helps to convert a string representing a boolean into the boolean</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>b</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def str2bool(s):
-    &#34;&#34;&#34;Helps to convert a string representing a boolean into the boolean&#34;&#34;&#34;
+    &#34;&#34;&#34;Helps to convert a string representing a boolean into the boolean
+    Args:
+        s : str
+    Returns:
+        b : boolean
+    &#34;&#34;&#34;
     if s == &#39;True&#39;:
         return True
     elif s == &#39;False&#39;:
@@ -287,7 +405,9 @@ the dictionnary of corrected arguments</p></section>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#readers">Readers</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>

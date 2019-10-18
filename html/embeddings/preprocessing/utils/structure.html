@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.1" />
 <title>embeddings.preprocessing.utils.structure API documentation</title>
-<meta name="description" content="Structure Utils
-…" />
+<meta name="description" content="Structure Utils …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -21,19 +20,14 @@
 <h1 class="title">Module <code>embeddings.preprocessing.utils.structure</code></h1>
 </header>
 <section id="section-intro">
-<hr>
-<pre><code>                            Structure Utils
-</code></pre>
-<hr>
+<h1 id="structure-utils">Structure Utils</h1>
 <p>Functions changing the text data structure</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
---------------------------------------------------------------------------------
-                                Structure Utils
---------------------------------------------------------------------------------
+#                                Structure Utils
 
 Functions changing the text data structure
 &#34;&#34;&#34;
@@ -43,6 +37,15 @@ from collections import Counter
 
 
 def melt_vocab_dic(vocab1, vocab2):
+    &#34;&#34;&#34;Melts vocab dictionnary by adding the counts of each words.
+    Vocab dictionnaries must be s.t.:
+    vocab = {&#39;word&#39; : count_occurencies_word}
+    Args:
+        vocab1 : dic
+        vocab2 : dic
+    Returns:
+        vocab : dic
+    &#34;&#34;&#34;
     for word in vocab2:
         if word in vocab1:
             vocab1[word] = vocab1[word] + vocab2[word]
@@ -55,11 +58,11 @@ def get_unigram_voc(text):
     &#34;&#34;&#34;
     Builds a dictionnary, batch per batch, of unique unigrams &amp; their
     occurences.
-    Args :
+    Args:
         text : str
             a text that is assumed to be cleaned with the preprocessors cleaning
             method
-    Returns :
+    Returns:
         vocabulary : dic
             a dictionnary {&#39;word&#39; : count_word}
     &#34;&#34;&#34;
@@ -74,11 +77,11 @@ def get_unigram_voc(text):
 def get_bigram_voc(text, parsing_char):
     &#34;&#34;&#34;
     Builds a dictionnary, of unique bigrams &amp; their occurences.
-    Args :
+    Args:
         text : str
             a text that is assumed to be cleaned with the preprocessor cleaning
             method
-    Returns :
+    Returns:
         vocab : dic
             a dictionnary {&#39;bigram&#39; : count_bigram}
     &#34;&#34;&#34;
@@ -105,14 +108,18 @@ def get_bigram_voc(text, parsing_char):
 <span>def <span class="ident">get_bigram_voc</span></span>(<span>text, parsing_char)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Builds a dictionnary, of unique bigrams &amp; their occurences.
-Args :
-text : str
-a text that is assumed to be cleaned with the preprocessor cleaning
-method
-Returns :
-vocab : dic
-a dictionnary {'bigram' : count_bigram}</p></section>
+<section class="desc"><p>Builds a dictionnary, of unique bigrams &amp; their occurences.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>text</code></strong> :&ensp;<code>str</code></dt>
+<dd>a text that is assumed to be cleaned with the preprocessor cleaning
+method</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>vocab</code></strong> :&ensp;<code>dic</code></dt>
+<dd>a dictionnary {'bigram' : count_bigram}</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -120,11 +127,11 @@ a dictionnary {'bigram' : count_bigram}</p></section>
 <pre><code class="python">def get_bigram_voc(text, parsing_char):
     &#34;&#34;&#34;
     Builds a dictionnary, of unique bigrams &amp; their occurences.
-    Args :
+    Args:
         text : str
             a text that is assumed to be cleaned with the preprocessor cleaning
             method
-    Returns :
+    Returns:
         vocab : dic
             a dictionnary {&#39;bigram&#39; : count_bigram}
     &#34;&#34;&#34;
@@ -145,14 +152,18 @@ a dictionnary {'bigram' : count_bigram}</p></section>
 </code></dt>
 <dd>
 <section class="desc"><p>Builds a dictionnary, batch per batch, of unique unigrams &amp; their
-occurences.
-Args :
-text : str
-a text that is assumed to be cleaned with the preprocessors cleaning
-method
-Returns :
-vocabulary : dic
-a dictionnary {'word' : count_word}</p></section>
+occurences.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>text</code></strong> :&ensp;<code>str</code></dt>
+<dd>a text that is assumed to be cleaned with the preprocessors cleaning
+method</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>vocabulary</code></strong> :&ensp;<code>dic</code></dt>
+<dd>a dictionnary {'word' : count_word}</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -161,11 +172,11 @@ a dictionnary {'word' : count_word}</p></section>
     &#34;&#34;&#34;
     Builds a dictionnary, batch per batch, of unique unigrams &amp; their
     occurences.
-    Args :
+    Args:
         text : str
             a text that is assumed to be cleaned with the preprocessors cleaning
             method
-    Returns :
+    Returns:
         vocabulary : dic
             a dictionnary {&#39;word&#39; : count_word}
     &#34;&#34;&#34;
@@ -181,12 +192,35 @@ a dictionnary {'word' : count_word}</p></section>
 <span>def <span class="ident">melt_vocab_dic</span></span>(<span>vocab1, vocab2)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Melts vocab dictionnary by adding the counts of each words.
+Vocab dictionnaries must be s.t.:
+vocab = {'word' : count_occurencies_word}</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>vocab1</code></strong> :&ensp;<code>dic</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>vocab2</code></strong> :&ensp;<code>dic</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>vocab</code></strong> :&ensp;<code>dic</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def melt_vocab_dic(vocab1, vocab2):
+    &#34;&#34;&#34;Melts vocab dictionnary by adding the counts of each words.
+    Vocab dictionnaries must be s.t.:
+    vocab = {&#39;word&#39; : count_occurencies_word}
+    Args:
+        vocab1 : dic
+        vocab2 : dic
+    Returns:
+        vocab : dic
+    &#34;&#34;&#34;
     for word in vocab2:
         if word in vocab1:
             vocab1[word] = vocab1[word] + vocab2[word]
@@ -203,7 +237,9 @@ a dictionnary {'word' : count_word}</p></section>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#structure-utils">Structure Utils</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
