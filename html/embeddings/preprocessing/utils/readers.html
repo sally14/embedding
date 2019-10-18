@@ -34,7 +34,7 @@ Contains utils functions to parse args from docopt (not always in the right form
 import os
 import logging
 
-logger = logging.getLogger(&#39;preprocessor&#39;)
+logger = logging.getLogger(&#34;preprocessor&#34;)
 
 
 def readArgs(args):
@@ -72,9 +72,9 @@ def str2bool(s):
     Returns:
         b : boolean
     &#34;&#34;&#34;
-    if s == &#39;True&#39;:
+    if s == &#34;True&#34;:
         return True
-    elif s == &#39;False&#39;:
+    elif s == &#34;False&#34;:
         return False
     else:
         raise ValueError
@@ -90,8 +90,8 @@ def checkExistenceDir(path):
     path = os.path.abspath(path)
     if not os.path.isdir(path):
         logger.warning(
-            &#39;Directory {} does not seem to exist, creating one.&#39;.format(path)
-            )
+            &#34;Directory {} does not seem to exist, creating one.&#34;.format(path)
+        )
         os.mkdir(path)
 
 
@@ -114,9 +114,9 @@ def openFile(filepath):
         text : str
             The text string
     &#34;&#34;&#34;
-    assert checkExistenceFile(filepath), &#39;filepath does not exist&#39;
-    with open(filepath, &#39;r&#39;, encoding=&#39;utf-8&#39;) as f:
-        text = &#39; &#39;.join(map(lambda x: x.rstrip(&#39;\n&#39;), f.readlines()))
+    assert checkExistenceFile(filepath), &#34;filepath does not exist&#34;
+    with open(filepath, &#34;r&#34;, encoding=&#34;utf-8&#34;) as f:
+        text = &#34; &#34;.join(map(lambda x: x.rstrip(&#34;\n&#34;), f.readlines()))
     return text
 
 
@@ -130,7 +130,7 @@ def convertInt(s):
     &#34;&#34;&#34;
     try:
         int(s)
-        return &#39;INT&#39;
+        return &#34;INT&#34;
     except:
         return s
 
@@ -145,7 +145,7 @@ def convertFloat(s):
             otherwise&#34;&#34;&#34;
     try:
         float(s)
-        return &#39;FLOAT&#39;
+        return &#34;FLOAT&#34;
     except:
         return s</code></pre>
 </details>
@@ -182,8 +182,8 @@ the directory.</p>
     path = os.path.abspath(path)
     if not os.path.isdir(path):
         logger.warning(
-            &#39;Directory {} does not seem to exist, creating one.&#39;.format(path)
-            )
+            &#34;Directory {} does not seem to exist, creating one.&#34;.format(path)
+        )
         os.mkdir(path)</code></pre>
 </details>
 </dd>
@@ -241,7 +241,7 @@ otherwise</dd>
             otherwise&#34;&#34;&#34;
     try:
         float(s)
-        return &#39;FLOAT&#39;
+        return &#34;FLOAT&#34;
     except:
         return s</code></pre>
 </details>
@@ -275,7 +275,7 @@ otherwise</dd>
     &#34;&#34;&#34;
     try:
         int(s)
-        return &#39;INT&#39;
+        return &#34;INT&#34;
     except:
         return s</code></pre>
 </details>
@@ -308,9 +308,9 @@ otherwise</dd>
         text : str
             The text string
     &#34;&#34;&#34;
-    assert checkExistenceFile(filepath), &#39;filepath does not exist&#39;
-    with open(filepath, &#39;r&#39;, encoding=&#39;utf-8&#39;) as f:
-        text = &#39; &#39;.join(map(lambda x: x.rstrip(&#39;\n&#39;), f.readlines()))
+    assert checkExistenceFile(filepath), &#34;filepath does not exist&#34;
+    with open(filepath, &#34;r&#34;, encoding=&#34;utf-8&#34;) as f:
+        text = &#34; &#34;.join(map(lambda x: x.rstrip(&#34;\n&#34;), f.readlines()))
     return text</code></pre>
 </details>
 </dd>
@@ -389,9 +389,9 @@ type.</p>
     Returns:
         b : boolean
     &#34;&#34;&#34;
-    if s == &#39;True&#39;:
+    if s == &#34;True&#34;:
         return True
-    elif s == &#39;False&#39;:
+    elif s == &#34;False&#34;:
         return False
     else:
         raise ValueError</code></pre>

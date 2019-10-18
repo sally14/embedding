@@ -6,7 +6,7 @@ Contains utils functions to parse args from docopt (not always in the right form
 import os
 import logging
 
-logger = logging.getLogger('preprocessor')
+logger = logging.getLogger("preprocessor")
 
 
 def readArgs(args):
@@ -44,9 +44,9 @@ def str2bool(s):
     Returns:
         b : boolean
     """
-    if s == 'True':
+    if s == "True":
         return True
-    elif s == 'False':
+    elif s == "False":
         return False
     else:
         raise ValueError
@@ -62,8 +62,8 @@ def checkExistenceDir(path):
     path = os.path.abspath(path)
     if not os.path.isdir(path):
         logger.warning(
-            'Directory {} does not seem to exist, creating one.'.format(path)
-            )
+            "Directory {} does not seem to exist, creating one.".format(path)
+        )
         os.mkdir(path)
 
 
@@ -86,9 +86,9 @@ def openFile(filepath):
         text : str
             The text string
     """
-    assert checkExistenceFile(filepath), 'filepath does not exist'
-    with open(filepath, 'r', encoding='utf-8') as f:
-        text = ' '.join(map(lambda x: x.rstrip('\n'), f.readlines()))
+    assert checkExistenceFile(filepath), "filepath does not exist"
+    with open(filepath, "r", encoding="utf-8") as f:
+        text = " ".join(map(lambda x: x.rstrip("\n"), f.readlines()))
     return text
 
 
@@ -102,7 +102,7 @@ def convertInt(s):
     """
     try:
         int(s)
-        return 'INT'
+        return "INT"
     except:
         return s
 
@@ -117,6 +117,6 @@ def convertFloat(s):
             otherwise"""
     try:
         float(s)
-        return 'FLOAT'
+        return "FLOAT"
     except:
         return s

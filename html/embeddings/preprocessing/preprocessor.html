@@ -43,7 +43,7 @@ config.save_config()
 prep = Preprocessor('/tmp/logdir')
 prep.fit('~/mydata/')
 prep.get_summary()
-prep.savewordphrases()
+prep.save_word_phrases()
 prep.transform()
 </code></pre>
 <details class="source">
@@ -82,12 +82,16 @@ config.save_config()
 prep = Preprocessor(&#39;/tmp/logdir&#39;)
 prep.fit(&#39;~/mydata/&#39;)
 prep.get_summary()
-prep.savewordphrases()
+prep.save_word_phrases()
 prep.transform()
 ```
 
 &#34;&#34;&#34;
-from preprocessing.utils.readers import checkExistenceDir, checkExistenceFile, openFile
+from preprocessing.utils.readers import (
+    checkExistenceDir,
+    checkExistenceFile,
+    openFile,
+)
 from preprocessing.utils.readers import convertFloat, convertInt
 from preprocessing.utils.structure import melt_vocab_dic
 from preprocessing.utils.structure import get_unigram_voc, get_bigram_voc
@@ -108,13 +112,14 @@ from glob import glob
 from hashlib import sha1
 
 
-logger = logging.getLogger(&#39;preprocessor&#39;)
+logger = logging.getLogger(&#34;preprocessor&#34;)
 
 
 class PreprocessorConfig(object):
     &#34;&#34;&#34;PreprocessorConfig is a util to write, load, and
     save preprocessors parameter configurations
     &#34;&#34;&#34;
+
     def __init__(self, log_dir):
         checkExistenceDir(log_dir)
         self.log_dir = log_dir
@@ -146,33 +151,31 @@ class PreprocessorConfig(object):
                 maximum size of the vocabulary
         &#34;&#34;&#34;
         self.params = {}
-        self.params[&#39;n_iter_phrases&#39;] = n_iter_phrases
-        self.params[&#39;phrases_delta&#39;] = phrases_delta
-        self.params[&#39;phrases_threshold&#39;] = phrases_threshold
-        self.params[&#39;freq_threshold&#39;] = freq_threshold
+        self.params[&#34;n_iter_phrases&#34;] = n_iter_phrases
+        self.params[&#34;phrases_delta&#34;] = phrases_delta
+        self.params[&#34;phrases_threshold&#34;] = phrases_threshold
+        self.params[&#34;freq_threshold&#34;] = freq_threshold
         checkExistenceDir(writing_dir)
-        self.params[&#39;writing_dir&#39;] = writing_dir
-        self.params[&#39;vocabulary_size&#39;] = vocabulary_size
+        self.params[&#34;writing_dir&#34;] = writing_dir
+        self.params[&#34;vocabulary_size&#34;] = vocabulary_size
         self.has_config = True
 
     def save_config(self):
         &#34;&#34;&#34;Saves the configuration class as a parameter json in the log_dir
         dir&#34;&#34;&#34;
         if self.has_config:
-            with open(os.path.join(
-                    self.log_dir,
-                    &#39;PreprocessorConfig.json&#39;),
-                    &#39;w&#39;) as f:
+            with open(
+                os.path.join(self.log_dir, &#34;PreprocessorConfig.json&#34;), &#34;w&#34;
+            ) as f:
                 json.dump(self.params, f)
         else:
-            logger.error(&#39;PreprocessorConfig has not been configurated&#39;)
+            logger.error(&#34;PreprocessorConfig has not been configurated&#34;)
 
     def read_config(self):
         &#34;&#34;&#34;Reads an existing config, that must be in the log_dir directory&#34;&#34;&#34;
-        with open(os.path.join(
-                self.log_dir,
-                &#39;PreprocessorConfig.json&#39;),
-                  &#39;r&#39;) as f:
+        with open(
+            os.path.join(self.log_dir, &#34;PreprocessorConfig.json&#34;), &#34;r&#34;
+        ) as f:
             self.params = json.load(f)
         self.has_config = True
 
@@ -205,16 +208,20 @@ class Preprocessor(PreprocessorConfig):
     # PreprocessorConfig saved in /tmp/logdir
     prep.fit(&#39;~/mydata/&#39;)
     prep.get_summary()
-    prep.savewordphrases()
+    prep.save_word_phrases()
     prep.transform()
     ```
     &#34;&#34;&#34;
+
     def __init__(self, log_dir):
         self.log_dir = log_dir
-        if checkExistenceFile(os.path.join(log_dir, &#39;PreprocessorConfig.json&#39;)):
+        if checkExistenceFile(
+            os.path.join(log_dir, &#34;PreprocessorConfig.json&#34;)
+        ):
             self.read_config()
         self.tok = ToktokTokenizer()
-        self.parsing_char_ = sha1(b&#39;sally14&#39;).hexdigest()
+        self.parsing_char_ = sha1(b&#34;sally14&#34;).hexdigest()
+        self.fitted = False
 
     def get_batches(self, filenames):
         &#34;&#34;&#34;Defines the filename batches to multiprocess fitting and transformation
@@ -228,18 +235,18 @@ class Preprocessor(PreprocessorConfig):
         &#34;&#34;&#34;
         if type(filenames) == str:
             if os.path.isdir(filenames):
-                ls = glob(os.path.join(filenames, &#39;*&#39;))
+                ls = glob(os.path.join(filenames, &#34;*&#34;))
         elif type(filenames) == list:
             ls = filenames
         else:
-            logger.error(&#39;Bad type for filenames, must be str or list of str&#39;)
+            logger.error(&#34;Bad type for filenames, must be str or list of str&#34;)
         batches = []
         cpu = cpu_count()
         n = len(ls)
         if n &gt;= cpu:
-            for i in range(cpu-1):
-                batches.append(ls[(n//cpu)*i:(n//cpu)*(i+1)])
-            batches.append(ls[(n//cpu)*(cpu-1):])
+            for i in range(cpu - 1):
+                batches.append(ls[(n // cpu) * i : (n // cpu) * (i + 1)])
+            batches.append(ls[(n // cpu) * (cpu - 1) :])
         else:
             batches = list(map(lambda x: [x], ls))
         assert len(batches) == min(cpu, n)
@@ -262,10 +269,10 @@ class Preprocessor(PreprocessorConfig):
         for file in filebatch:
             text = openFile(file)
             cleaned_text = self.clean(text)
-            # delete_punctuation only delete punctuation if the option is
-            # activated.
             unig = melt_vocab_dic(get_unigram_voc(cleaned_text), unig)
-            big = melt_vocab_dic(get_bigram_voc(cleaned_text, self.parsing_char_), big)
+            big = melt_vocab_dic(
+                get_bigram_voc(cleaned_text, self.parsing_char_), big
+            )
             del text
             del cleaned_text
         return [unig, big]
@@ -278,40 +285,51 @@ class Preprocessor(PreprocessorConfig):
             filenames : str or list of str
                 the list of file names in the given batch
         &#34;&#34;&#34;
-        logger.info(&#39;Started fitting&#39;)
+        logger.info(&#34;Started fitting&#34;)
         batches = self.get_batches(filenames)
-        logger.info(&#39;Defined {} batches for multiprocessing&#39;.format(cpu_count()))
-        logger.info(&#39;Starting parallelized fitting&#39;)
+        logger.info(
+            &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+        )
+        logger.info(&#34;Starting parallelized fitting&#34;)
         pool = Pool(processes=cpu_count())
         results = pool.map(self.fit_batch, batches)
         pool.close()
         pool.terminate()
         pool.join()
-        logger.info(&#39;Received {} batches results&#39;)
-        logger.info(&#39;Melting unigram and bigrams dictionnaries&#39;)
+        logger.info(&#34;Received {} batches results&#34;)
+        logger.info(&#34;Melting unigram and bigrams dictionnaries&#34;)
         self.unigram_dic_ = {}
         self.bigram_dic_ = {}
         for j in range(len(results)):
             self.unigram_dic_ = melt_vocab_dic(
                 self.unigram_dic_, results[j][0]
             )
-            self.bigram_dic_ = melt_vocab_dic(
-                self.bigram_dic_, results[j][1]
-            )
+            self.bigram_dic_ = melt_vocab_dic(self.bigram_dic_, results[j][1])
             results[j] = 0  # Clears memory
         del results
         gc.collect()
+        logger.info(&#34;Building word phrases score&#34;)
         self.build_score()
         self.phrasewords_ = {}
         self.phrasewords()
         self.vocabulary_ = {}
         self.build_vocab()
         self.wordcount2freq()
+        logger.info(&#34;Subsampling unfrequent words&#34;)
         self.subsample_freq_dic()
-
+        logger.info(&#34;Corpus fitted&#34;)
+        self.fitted = True
+        logger.info(&#34;Saving vocabulary&#34;)
+        with open(
+            op.path.join(self.log_dir, &#34;vocabulary.json&#34;),
+            &#34;w&#34;,
+            encoding=&#34;utf-8&#34;,
+        ) as f:
+            json.dump(self.vocabulary_, f)
 
     def clean(self, text):
-        &#34;&#34;&#34;Parses a text, tokenize, lowers and replace ints and floats by a special token
+        &#34;&#34;&#34;Parses a text, tokenize, lowers and replace ints and floats by a
+        special token
         Args:
             text : str
                 a text represented as a string
@@ -320,8 +338,9 @@ class Preprocessor(PreprocessorConfig):
                 a clean text
         &#34;&#34;&#34;
         words = self.tok.tokenize(text)
-        words = &#39; &#39;.join(map(lambda x: convertFloat(convertInt(x.lower())),
-                             words))
+        words = &#34; &#34;.join(
+            map(lambda x: convertFloat(convertInt(x.lower())), words)
+        )
         return words
 
     def build_score(self):
@@ -332,9 +351,9 @@ class Preprocessor(PreprocessorConfig):
         &#34;&#34;&#34;
         for bigrams in self.bigram_dic_.keys():
             i, j = bigrams.split(self.parsing_char_)
-            score = (self.bigram_dic_[bigrams] - self.params[&#39;phrases_delta&#39;]) / (
-                self.unigram_dic_[i] * self.unigram_dic_[j]
-            )
+            score = (
+                self.bigram_dic_[bigrams] - self.params[&#34;phrases_delta&#34;]
+            ) / (self.unigram_dic_[i] * self.unigram_dic_[j])
             self.bigram_dic_[bigrams] = (self.bigram_dic_[bigrams], score)
 
     def build_vocab(self):
@@ -374,7 +393,7 @@ class Preprocessor(PreprocessorConfig):
         phrases, with their occurences.
         &#34;&#34;&#34;
         for bigrams in self.bigram_dic_:
-            if self.bigram_dic_[bigrams][1] &gt; self.params[&#39;phrases_threshold&#39;]:
+            if self.bigram_dic_[bigrams][1] &gt; self.params[&#34;phrases_threshold&#34;]:
                 self.phrasewords_[bigrams] = self.bigram_dic_[bigrams][0]
 
     def wordcount2freq(self):
@@ -397,10 +416,10 @@ class Preprocessor(PreprocessorConfig):
         &#34;&#34;&#34;
         Vocab dictionnary frequency subsampling.
         $$p = 1 - \sqrt{\frac{t}{f}}$$
-        With $f$ the frequency of a given word, and $p$ probability 
+        With $f$ the frequency of a given word, and $p$ probability
         to discard the word.
         &#34;&#34;&#34;
-        t = self.params[&#39;freq_threshold&#39;]
+        t = self.params[&#34;freq_threshold&#34;]
         vocab = self.vocab_freq_
         for word in self.vocab_freq_.keys():
             try:  # In some very rare cases, doesn&#39;t work
@@ -416,85 +435,133 @@ class Preprocessor(PreprocessorConfig):
                     del self.vocabulary_[word]
             except:
                 pass
-        return None
+        # Order vocab by frequency:
+        self.vocabulary_ = OrderedDict(
+            sorted(self.vocabulary_.items(), key=lambda x: x[1], reverse=True)
+        )
+        # Cuts if max_voc_size
+        if self.params[&#34;vocabulary_size&#34;] is not None:
+            self.vocabulary_ = {
+                k: self.vocabulary_[k]
+                for k in self.vocabulary_.keys()[
+                    : self.params[&#34;vocabulary_size&#34;]
+                ]
+            }
 
-    def wordphrases(self, sentences):
+    def wordphrases(self, t):
         &#34;&#34;&#34;
-        Batch-per-batch word phrases gathering (in a single token, gathered
-        with _ ).
+        word phrases gathering (in a single token, gathered with _ ).
         Args:
-            sentences : a batch of sentences as a list of words lists.
+            t : str
+                a text to clean
         Returns:
-            sentences : the batch of sentences, with WP gathered
+            t : str
+                the cleaned text
         &#34;&#34;&#34;
         count = 0
-        new_sent = []  # new_sent will store the modified sentences
-        for i in sentences:  # Iterating on sentences
-            new_sent_sent = []
-            # new_sent_sent will store the words of modified sentences
-            # First handling the case where the sentence is just one word
-            # cannot generate any bigram.
-            if len(i) == 1:
-                new_sent_sent = i
-                new_sent.append(new_sent_sent)
-                del new_sent_sent
-            # Then regular cases :
-            else:
-                j = 0
-                while j &lt; (len(i) - 1):  # = for each word in the sentence
-                    big = (i[j], i[j + 1])  # getting the (j-th, j+1-th)words
-                    # writing the corresponding bigram :
-                    bigrams = self.parsing_char_.join(big)
-                    # If the bigram is enough frequent to be gathered :
-                    if bigrams in self.phrasewords_:
-                        # Then add the bigram as a new word in &#39;new_sent_sent&#39;
-                        new_sent_sent.append(&#34;_&#34;.join(big))
-                        count = count + 1  # Count the number of gathered
-                        # bigrams
-                        # Directly go to the j+2-th word in order to avoid
-                        # repeating the j+1-th word
+        words = t.split(&#34; &#34;)
+        new_words = []
+        # First handling the case where the text is just one word :
+        # cannot generate any bigram.
+        if len(words) == 1:
+            new_words = words
+        # Then regular cases :
+        else:
+            j = 0
+            while j &lt; (len(words) - 1):  # = for each word in the sentence
+                big = (
+                    words[j],
+                    words[j + 1],
+                )  # getting the (j-th, j+1-th)words
+                # writing the corresponding bigram :
+                bigrams = self.parsing_char_.join(big)
+                # If the bigram is enough frequent to be gathered :
+                if bigrams in self.phrasewords_:
+                    # Then add the bigram as a new word in &#39;new_sent_sent&#39;
+                    new_words.append(&#34;_&#34;.join(big))
+                    count = count + 1  # Count the number of gathered
+                    # bigrams
+                    # Directly go to the j+2-th word in order to avoid
+                    # repeating the j+1-th word
+                    j = j + 2
+                # If the bigram is not frequent enough :
+                else:
+                    if j == (len(words) - 2):
+                        new_words.append(words[j])
+                        new_words.append(words[j + 1])
                         j = j + 2
-                    # If the bigram is not frequent enough :
+                    # Add j-th word
                     else:
-                        if j == (len(i) - 2):
-                            new_sent_sent.append(i[j])
-                            new_sent_sent.append(i[j + 1])
-                            j = j + 2
-                        # Add j-th word
-                        else:
-                            new_sent_sent.append(i[j])
-                            # Go to j+1-th word
-                            j = j + 1
-                    del big
-                    del bigrams
-                # Finally add the sentence to the new sentences list &#39;new_sent&#39;
-                new_sent.append(new_sent_sent)
-                del new_sent_sent
-        return new_sent
+                        new_words.append(words[j])
+                        # Go to j+1-th word
+                        j = j + 1
 
-    def transform(self, filebatch, n):
+        return &#34; &#34;.join(new_words)
+
+    def transform_batch(self, filebatch):
+        &#34;&#34;&#34; Transforms a batch by cleaning the text, gathering word phrases,
+        replacing subsampled words by UNK token.
+        Args:
+            filebatch : list of str
+                the list of paths to the files
+        &#34;&#34;&#34;
         for file in filebatch:
-            if n == 0:
-                new_file = os.path.join(
-                    self.writing_dir_,
-                    file.split(&#34;/&#34;)[-1].split(&#34;.&#34;)[0] + &#34;_cleaned&#34; + &#34;.txt&#34;,
+            new_file = os.path.join(
+                self.params[&#34;writing_dir&#34;],
+                os.path.basename(file) + &#34;_cleaned&#34; + &#34;.txt&#34;,
+            )
+
+            text = openFile(file)
+            cleaned_text = self.clean(text)
+            # Words phrases gathering
+            cleaned_text = self.phrasewords(cleaned_text)
+            # Frequency subsampling
+            cleaned_text = &#34; &#34;.join(
+                map(
+                    lambda x: &#34;UNK&#34;
+                    if (x not in self.vocabulary_.keys())
+                    else x,
+                    cleaned_text.split(&#34; &#34;),
                 )
-            else:
-                new_file = file
-            sentence = self.delete_punctuation(self.file2sent(file))
-            sentence = self.wordphrases(sentence)
-            # if n == self.n_iter_phrases_-1:
-            #     if not(self.disable_subsampling_):
-            #         sentence = self.subsample_freq(sentence)
-            text = open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;)
-            for i in range(len(sentence)):
-                text.write(&#34; &#34;.join(sentence[i]) + &#34;\n&#34;)
-            text.close()
-            del sentence
+            )
+            with open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;) as f:
+                f.write(cleaned_text)
+
+    def transform(self, filenames):
+        &#34;&#34;&#34;
+        Parallelizes the transformation, dumped in writing_dir
+        Args:
+            filenames : str or list of str
+                the list of file names in the given batch
+        &#34;&#34;&#34;
+        logger.info(&#34;Started fitting&#34;)
+        batches = self.get_batches(filenames)
+        logger.info(
+            &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+        )
+        logger.info(&#34;Starting parallelized transforming&#34;)
+        pool = Pool(processes=cpu_count())
+        pool.map(self.transform_batch, batches)
+        pool.close()
+        pool.terminate()
+        pool.join()
+        logger.info(&#34;Succesfully transformed all the files&#34;)
+
+    def save_word_phrases(self):
+        &#34;&#34;&#34;Saves word phrases as a json file in log_dir
+        &#34;&#34;&#34;
+        with open(
+            os.path.join(self.log_dir, &#34;WordPhrases.json&#34;),
+            &#34;w&#34;,
+            encoding=&#34;utf-8&#34;,
+        ) as f:
+            json.dump(self.wordphrases, f)
 
     def get_summary(self):
+        &#34;&#34;&#34; Writes a summary of the fitting in the log_dir
+        &#34;&#34;&#34;
         with open(
-            os.path.join(self.vocab_dir, &#34;Summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+            os.path.join(self.log_dir, &#34;summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
         ) as text:
             text.write(&#34;Parameters: \n-------------------- \n&#34;)
             text.write(
@@ -557,128 +624,7 @@ class Preprocessor(PreprocessorConfig):
                     ]
                 ]
             )
-            text.write(str(head))
-
-    def fit_transform(
-        self, nb_proc=cpu_count(), given_filebatch=None, transform=True
-    ):
-        &#34;&#34;&#34;
-        Global method that first iterates word phrases detection and gathering,
-        then subsamples. For each iteration of WP detection, the method firstly
-        fits scores &amp; frequencies, batch per batch, and then transforms data,
-        batch per batch too. It takes the data from data_dir and writes the
-        cleaned data in writing_dir.
-        &#34;&#34;&#34;
-        if given_filebatch is None:
-            # Get file names from the data directory :
-            filenames = self.filenames
-        else:
-            filenames = given_filebatch
-        # Create data batches to feed function maping
-        print(&#34;Getting filenames...&#34;)
-        batches_size = max(1, len(filenames) // nb_proc)
-        batches = []
-        for i in range(nb_proc):
-            batch = []
-            for j in range(batches_size):
-                try:
-                    batch.append(filenames.pop())
-                except:
-                    pass
-            batches.append(batch)
-        for n in range(self.n_iter_phrases_):
-            print(
-                &#34;Entering {0}-th iteration of word phrase &#34;.format(n + 1)
-                + &#34;recognition...\n&#34;
-            )
-            print(&#34;Entering fitting phase...&#34;)
-            pool = Pool(processes=nb_proc)
-            results = pool.map(self.fit_map, batches)
-            pool.close()
-            pool.terminate()
-            pool.join()
-
-            print(&#34;Melting unigram and bigrams dictionnaries...&#34;)
-            for j in range(len(results)):
-                self.unigram_dic_ = melt_vocab_dic(
-                    self.unigram_dic_, results[j][0]
-                )
-                self.bigram_dic_ = melt_vocab_dic(
-                    self.bigram_dic_, results[j][1]
-                )
-                results[j] = 0  # Clears memory
-            del results
-            gc.collect()
-            print(&#34;Finishing fitting...&#34;)
-            self.build_score()
-            self.phrasewords()
-            self.build_vocab()
-            self.wordcount2freq()
-            self.subsample_freq_dic()
-            self.save()
-
-            if transform:
-                args = [(batches[i], n) for i in range(len(batches))]
-                print(&#34;Entering transform phase...&#34;)
-                pool = Pool(processes=nb_proc)
-                pool.starmap(self.transform, args)
-                pool.close()
-                pool.terminate()
-                pool.join()
-        print(&#34;Editing Summary...&#34;)
-        self.get_summary()
-        gc.collect()
-        del self.vocabulary_
-        gc.collect()
-
-    def save(self):
-        &#34;&#34;&#34;
-        Saves downsampled vocab, by frequency, with eventual size cut
-        &#34;&#34;&#34;
-        with open(
-            os.path.join(
-                self.writing_dir_,
-                &#34;saved_preprocessing&#34; + self.nb_batch + &#34;.json&#34;,
-            ),
-            &#34;w&#34;,
-            encoding=&#34;utf-8&#34;,
-        ) as saving:
-            # Delete &#34;&#34; if in vocabulary :
-            if &#34;&#34; in self.vocabulary_:
-                del self.vocabulary_[&#34;&#34;]
-            # Order vocab by frequency:
-            ordered = OrderedDict(
-                sorted(
-                    self.vocabulary_.items(), key=lambda x: x[1], reverse=True
-                )
-            )
-            self.vocabulary = {}  # Clear old copy for memory management
-            # Cut vocab:
-            cut_vocab = {}
-            if self.vocabulary_size_ is not None:
-                if &#34;_-_OOV_-_&#34; not in ordered:
-                    self.vocabulary_size_ = self.vocabulary_size_ - 1
-                i = 0
-                for word in ordered:
-                    if i &gt; self.vocabulary_size_:
-                        break
-                    cut_vocab[word] = ordered[word]
-                    i = i + 1
-            print(&#34;Total vocabulary size is {0}&#34;.format(len(cut_vocab)))
-            with open(
-                os.path.join(self.writing_dir_, &#34;len_vocab.txt&#34;),
-                &#34;w&#34;,
-                encoding=&#34;utf-8&#34;,
-            ) as f:
-                f.write(str(len(cut_vocab)))
-            ordered = {}  # Clear old copy for memory management
-            # Add OOV token (must be added AFTER sorting &amp; cutting by frequency!)
-            if &#34;_-_OOV_-_&#34; not in cut_vocab:
-                cut_vocab[&#34;_-_OOV_-_&#34;] = len(cut_vocab)
-            cut_vocab = dict(
-                zip(list(cut_vocab.keys()), [i for i in range(len(cut_vocab))])
-            )
-            json.dump(cut_vocab, saving)</code></pre>
+            text.write(str(head))</code></pre>
 </details>
 </section>
 <section>
@@ -720,7 +666,7 @@ all the cpus available.</p>
 # PreprocessorConfig saved in /tmp/logdir
 prep.fit('~/mydata/')
 prep.get_summary()
-prep.savewordphrases()
+prep.save_word_phrases()
 prep.transform()
 </code></pre></section>
 <details class="source">
@@ -755,16 +701,20 @@ prep.transform()
     # PreprocessorConfig saved in /tmp/logdir
     prep.fit(&#39;~/mydata/&#39;)
     prep.get_summary()
-    prep.savewordphrases()
+    prep.save_word_phrases()
     prep.transform()
     ```
     &#34;&#34;&#34;
+
     def __init__(self, log_dir):
         self.log_dir = log_dir
-        if checkExistenceFile(os.path.join(log_dir, &#39;PreprocessorConfig.json&#39;)):
+        if checkExistenceFile(
+            os.path.join(log_dir, &#34;PreprocessorConfig.json&#34;)
+        ):
             self.read_config()
         self.tok = ToktokTokenizer()
-        self.parsing_char_ = sha1(b&#39;sally14&#39;).hexdigest()
+        self.parsing_char_ = sha1(b&#34;sally14&#34;).hexdigest()
+        self.fitted = False
 
     def get_batches(self, filenames):
         &#34;&#34;&#34;Defines the filename batches to multiprocess fitting and transformation
@@ -778,18 +728,18 @@ prep.transform()
         &#34;&#34;&#34;
         if type(filenames) == str:
             if os.path.isdir(filenames):
-                ls = glob(os.path.join(filenames, &#39;*&#39;))
+                ls = glob(os.path.join(filenames, &#34;*&#34;))
         elif type(filenames) == list:
             ls = filenames
         else:
-            logger.error(&#39;Bad type for filenames, must be str or list of str&#39;)
+            logger.error(&#34;Bad type for filenames, must be str or list of str&#34;)
         batches = []
         cpu = cpu_count()
         n = len(ls)
         if n &gt;= cpu:
-            for i in range(cpu-1):
-                batches.append(ls[(n//cpu)*i:(n//cpu)*(i+1)])
-            batches.append(ls[(n//cpu)*(cpu-1):])
+            for i in range(cpu - 1):
+                batches.append(ls[(n // cpu) * i : (n // cpu) * (i + 1)])
+            batches.append(ls[(n // cpu) * (cpu - 1) :])
         else:
             batches = list(map(lambda x: [x], ls))
         assert len(batches) == min(cpu, n)
@@ -812,10 +762,10 @@ prep.transform()
         for file in filebatch:
             text = openFile(file)
             cleaned_text = self.clean(text)
-            # delete_punctuation only delete punctuation if the option is
-            # activated.
             unig = melt_vocab_dic(get_unigram_voc(cleaned_text), unig)
-            big = melt_vocab_dic(get_bigram_voc(cleaned_text, self.parsing_char_), big)
+            big = melt_vocab_dic(
+                get_bigram_voc(cleaned_text, self.parsing_char_), big
+            )
             del text
             del cleaned_text
         return [unig, big]
@@ -828,40 +778,51 @@ prep.transform()
             filenames : str or list of str
                 the list of file names in the given batch
         &#34;&#34;&#34;
-        logger.info(&#39;Started fitting&#39;)
+        logger.info(&#34;Started fitting&#34;)
         batches = self.get_batches(filenames)
-        logger.info(&#39;Defined {} batches for multiprocessing&#39;.format(cpu_count()))
-        logger.info(&#39;Starting parallelized fitting&#39;)
+        logger.info(
+            &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+        )
+        logger.info(&#34;Starting parallelized fitting&#34;)
         pool = Pool(processes=cpu_count())
         results = pool.map(self.fit_batch, batches)
         pool.close()
         pool.terminate()
         pool.join()
-        logger.info(&#39;Received {} batches results&#39;)
-        logger.info(&#39;Melting unigram and bigrams dictionnaries&#39;)
+        logger.info(&#34;Received {} batches results&#34;)
+        logger.info(&#34;Melting unigram and bigrams dictionnaries&#34;)
         self.unigram_dic_ = {}
         self.bigram_dic_ = {}
         for j in range(len(results)):
             self.unigram_dic_ = melt_vocab_dic(
                 self.unigram_dic_, results[j][0]
             )
-            self.bigram_dic_ = melt_vocab_dic(
-                self.bigram_dic_, results[j][1]
-            )
+            self.bigram_dic_ = melt_vocab_dic(self.bigram_dic_, results[j][1])
             results[j] = 0  # Clears memory
         del results
         gc.collect()
+        logger.info(&#34;Building word phrases score&#34;)
         self.build_score()
         self.phrasewords_ = {}
         self.phrasewords()
         self.vocabulary_ = {}
         self.build_vocab()
         self.wordcount2freq()
+        logger.info(&#34;Subsampling unfrequent words&#34;)
         self.subsample_freq_dic()
-
+        logger.info(&#34;Corpus fitted&#34;)
+        self.fitted = True
+        logger.info(&#34;Saving vocabulary&#34;)
+        with open(
+            op.path.join(self.log_dir, &#34;vocabulary.json&#34;),
+            &#34;w&#34;,
+            encoding=&#34;utf-8&#34;,
+        ) as f:
+            json.dump(self.vocabulary_, f)
 
     def clean(self, text):
-        &#34;&#34;&#34;Parses a text, tokenize, lowers and replace ints and floats by a special token
+        &#34;&#34;&#34;Parses a text, tokenize, lowers and replace ints and floats by a
+        special token
         Args:
             text : str
                 a text represented as a string
@@ -870,8 +831,9 @@ prep.transform()
                 a clean text
         &#34;&#34;&#34;
         words = self.tok.tokenize(text)
-        words = &#39; &#39;.join(map(lambda x: convertFloat(convertInt(x.lower())),
-                             words))
+        words = &#34; &#34;.join(
+            map(lambda x: convertFloat(convertInt(x.lower())), words)
+        )
         return words
 
     def build_score(self):
@@ -882,9 +844,9 @@ prep.transform()
         &#34;&#34;&#34;
         for bigrams in self.bigram_dic_.keys():
             i, j = bigrams.split(self.parsing_char_)
-            score = (self.bigram_dic_[bigrams] - self.params[&#39;phrases_delta&#39;]) / (
-                self.unigram_dic_[i] * self.unigram_dic_[j]
-            )
+            score = (
+                self.bigram_dic_[bigrams] - self.params[&#34;phrases_delta&#34;]
+            ) / (self.unigram_dic_[i] * self.unigram_dic_[j])
             self.bigram_dic_[bigrams] = (self.bigram_dic_[bigrams], score)
 
     def build_vocab(self):
@@ -924,7 +886,7 @@ prep.transform()
         phrases, with their occurences.
         &#34;&#34;&#34;
         for bigrams in self.bigram_dic_:
-            if self.bigram_dic_[bigrams][1] &gt; self.params[&#39;phrases_threshold&#39;]:
+            if self.bigram_dic_[bigrams][1] &gt; self.params[&#34;phrases_threshold&#34;]:
                 self.phrasewords_[bigrams] = self.bigram_dic_[bigrams][0]
 
     def wordcount2freq(self):
@@ -947,10 +909,10 @@ prep.transform()
         &#34;&#34;&#34;
         Vocab dictionnary frequency subsampling.
         $$p = 1 - \sqrt{\frac{t}{f}}$$
-        With $f$ the frequency of a given word, and $p$ probability 
+        With $f$ the frequency of a given word, and $p$ probability
         to discard the word.
         &#34;&#34;&#34;
-        t = self.params[&#39;freq_threshold&#39;]
+        t = self.params[&#34;freq_threshold&#34;]
         vocab = self.vocab_freq_
         for word in self.vocab_freq_.keys():
             try:  # In some very rare cases, doesn&#39;t work
@@ -966,85 +928,133 @@ prep.transform()
                     del self.vocabulary_[word]
             except:
                 pass
-        return None
+        # Order vocab by frequency:
+        self.vocabulary_ = OrderedDict(
+            sorted(self.vocabulary_.items(), key=lambda x: x[1], reverse=True)
+        )
+        # Cuts if max_voc_size
+        if self.params[&#34;vocabulary_size&#34;] is not None:
+            self.vocabulary_ = {
+                k: self.vocabulary_[k]
+                for k in self.vocabulary_.keys()[
+                    : self.params[&#34;vocabulary_size&#34;]
+                ]
+            }
 
-    def wordphrases(self, sentences):
+    def wordphrases(self, t):
         &#34;&#34;&#34;
-        Batch-per-batch word phrases gathering (in a single token, gathered
-        with _ ).
+        word phrases gathering (in a single token, gathered with _ ).
         Args:
-            sentences : a batch of sentences as a list of words lists.
+            t : str
+                a text to clean
         Returns:
-            sentences : the batch of sentences, with WP gathered
+            t : str
+                the cleaned text
         &#34;&#34;&#34;
         count = 0
-        new_sent = []  # new_sent will store the modified sentences
-        for i in sentences:  # Iterating on sentences
-            new_sent_sent = []
-            # new_sent_sent will store the words of modified sentences
-            # First handling the case where the sentence is just one word
-            # cannot generate any bigram.
-            if len(i) == 1:
-                new_sent_sent = i
-                new_sent.append(new_sent_sent)
-                del new_sent_sent
-            # Then regular cases :
-            else:
-                j = 0
-                while j &lt; (len(i) - 1):  # = for each word in the sentence
-                    big = (i[j], i[j + 1])  # getting the (j-th, j+1-th)words
-                    # writing the corresponding bigram :
-                    bigrams = self.parsing_char_.join(big)
-                    # If the bigram is enough frequent to be gathered :
-                    if bigrams in self.phrasewords_:
-                        # Then add the bigram as a new word in &#39;new_sent_sent&#39;
-                        new_sent_sent.append(&#34;_&#34;.join(big))
-                        count = count + 1  # Count the number of gathered
-                        # bigrams
-                        # Directly go to the j+2-th word in order to avoid
-                        # repeating the j+1-th word
+        words = t.split(&#34; &#34;)
+        new_words = []
+        # First handling the case where the text is just one word :
+        # cannot generate any bigram.
+        if len(words) == 1:
+            new_words = words
+        # Then regular cases :
+        else:
+            j = 0
+            while j &lt; (len(words) - 1):  # = for each word in the sentence
+                big = (
+                    words[j],
+                    words[j + 1],
+                )  # getting the (j-th, j+1-th)words
+                # writing the corresponding bigram :
+                bigrams = self.parsing_char_.join(big)
+                # If the bigram is enough frequent to be gathered :
+                if bigrams in self.phrasewords_:
+                    # Then add the bigram as a new word in &#39;new_sent_sent&#39;
+                    new_words.append(&#34;_&#34;.join(big))
+                    count = count + 1  # Count the number of gathered
+                    # bigrams
+                    # Directly go to the j+2-th word in order to avoid
+                    # repeating the j+1-th word
+                    j = j + 2
+                # If the bigram is not frequent enough :
+                else:
+                    if j == (len(words) - 2):
+                        new_words.append(words[j])
+                        new_words.append(words[j + 1])
                         j = j + 2
-                    # If the bigram is not frequent enough :
+                    # Add j-th word
                     else:
-                        if j == (len(i) - 2):
-                            new_sent_sent.append(i[j])
-                            new_sent_sent.append(i[j + 1])
-                            j = j + 2
-                        # Add j-th word
-                        else:
-                            new_sent_sent.append(i[j])
-                            # Go to j+1-th word
-                            j = j + 1
-                    del big
-                    del bigrams
-                # Finally add the sentence to the new sentences list &#39;new_sent&#39;
-                new_sent.append(new_sent_sent)
-                del new_sent_sent
-        return new_sent
+                        new_words.append(words[j])
+                        # Go to j+1-th word
+                        j = j + 1
 
-    def transform(self, filebatch, n):
+        return &#34; &#34;.join(new_words)
+
+    def transform_batch(self, filebatch):
+        &#34;&#34;&#34; Transforms a batch by cleaning the text, gathering word phrases,
+        replacing subsampled words by UNK token.
+        Args:
+            filebatch : list of str
+                the list of paths to the files
+        &#34;&#34;&#34;
         for file in filebatch:
-            if n == 0:
-                new_file = os.path.join(
-                    self.writing_dir_,
-                    file.split(&#34;/&#34;)[-1].split(&#34;.&#34;)[0] + &#34;_cleaned&#34; + &#34;.txt&#34;,
+            new_file = os.path.join(
+                self.params[&#34;writing_dir&#34;],
+                os.path.basename(file) + &#34;_cleaned&#34; + &#34;.txt&#34;,
+            )
+
+            text = openFile(file)
+            cleaned_text = self.clean(text)
+            # Words phrases gathering
+            cleaned_text = self.phrasewords(cleaned_text)
+            # Frequency subsampling
+            cleaned_text = &#34; &#34;.join(
+                map(
+                    lambda x: &#34;UNK&#34;
+                    if (x not in self.vocabulary_.keys())
+                    else x,
+                    cleaned_text.split(&#34; &#34;),
                 )
-            else:
-                new_file = file
-            sentence = self.delete_punctuation(self.file2sent(file))
-            sentence = self.wordphrases(sentence)
-            # if n == self.n_iter_phrases_-1:
-            #     if not(self.disable_subsampling_):
-            #         sentence = self.subsample_freq(sentence)
-            text = open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;)
-            for i in range(len(sentence)):
-                text.write(&#34; &#34;.join(sentence[i]) + &#34;\n&#34;)
-            text.close()
-            del sentence
+            )
+            with open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;) as f:
+                f.write(cleaned_text)
+
+    def transform(self, filenames):
+        &#34;&#34;&#34;
+        Parallelizes the transformation, dumped in writing_dir
+        Args:
+            filenames : str or list of str
+                the list of file names in the given batch
+        &#34;&#34;&#34;
+        logger.info(&#34;Started fitting&#34;)
+        batches = self.get_batches(filenames)
+        logger.info(
+            &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+        )
+        logger.info(&#34;Starting parallelized transforming&#34;)
+        pool = Pool(processes=cpu_count())
+        pool.map(self.transform_batch, batches)
+        pool.close()
+        pool.terminate()
+        pool.join()
+        logger.info(&#34;Succesfully transformed all the files&#34;)
+
+    def save_word_phrases(self):
+        &#34;&#34;&#34;Saves word phrases as a json file in log_dir
+        &#34;&#34;&#34;
+        with open(
+            os.path.join(self.log_dir, &#34;WordPhrases.json&#34;),
+            &#34;w&#34;,
+            encoding=&#34;utf-8&#34;,
+        ) as f:
+            json.dump(self.wordphrases, f)
 
     def get_summary(self):
+        &#34;&#34;&#34; Writes a summary of the fitting in the log_dir
+        &#34;&#34;&#34;
         with open(
-            os.path.join(self.vocab_dir, &#34;Summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+            os.path.join(self.log_dir, &#34;summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
         ) as text:
             text.write(&#34;Parameters: \n-------------------- \n&#34;)
             text.write(
@@ -1107,128 +1117,7 @@ prep.transform()
                     ]
                 ]
             )
-            text.write(str(head))
-
-    def fit_transform(
-        self, nb_proc=cpu_count(), given_filebatch=None, transform=True
-    ):
-        &#34;&#34;&#34;
-        Global method that first iterates word phrases detection and gathering,
-        then subsamples. For each iteration of WP detection, the method firstly
-        fits scores &amp; frequencies, batch per batch, and then transforms data,
-        batch per batch too. It takes the data from data_dir and writes the
-        cleaned data in writing_dir.
-        &#34;&#34;&#34;
-        if given_filebatch is None:
-            # Get file names from the data directory :
-            filenames = self.filenames
-        else:
-            filenames = given_filebatch
-        # Create data batches to feed function maping
-        print(&#34;Getting filenames...&#34;)
-        batches_size = max(1, len(filenames) // nb_proc)
-        batches = []
-        for i in range(nb_proc):
-            batch = []
-            for j in range(batches_size):
-                try:
-                    batch.append(filenames.pop())
-                except:
-                    pass
-            batches.append(batch)
-        for n in range(self.n_iter_phrases_):
-            print(
-                &#34;Entering {0}-th iteration of word phrase &#34;.format(n + 1)
-                + &#34;recognition...\n&#34;
-            )
-            print(&#34;Entering fitting phase...&#34;)
-            pool = Pool(processes=nb_proc)
-            results = pool.map(self.fit_map, batches)
-            pool.close()
-            pool.terminate()
-            pool.join()
-
-            print(&#34;Melting unigram and bigrams dictionnaries...&#34;)
-            for j in range(len(results)):
-                self.unigram_dic_ = melt_vocab_dic(
-                    self.unigram_dic_, results[j][0]
-                )
-                self.bigram_dic_ = melt_vocab_dic(
-                    self.bigram_dic_, results[j][1]
-                )
-                results[j] = 0  # Clears memory
-            del results
-            gc.collect()
-            print(&#34;Finishing fitting...&#34;)
-            self.build_score()
-            self.phrasewords()
-            self.build_vocab()
-            self.wordcount2freq()
-            self.subsample_freq_dic()
-            self.save()
-
-            if transform:
-                args = [(batches[i], n) for i in range(len(batches))]
-                print(&#34;Entering transform phase...&#34;)
-                pool = Pool(processes=nb_proc)
-                pool.starmap(self.transform, args)
-                pool.close()
-                pool.terminate()
-                pool.join()
-        print(&#34;Editing Summary...&#34;)
-        self.get_summary()
-        gc.collect()
-        del self.vocabulary_
-        gc.collect()
-
-    def save(self):
-        &#34;&#34;&#34;
-        Saves downsampled vocab, by frequency, with eventual size cut
-        &#34;&#34;&#34;
-        with open(
-            os.path.join(
-                self.writing_dir_,
-                &#34;saved_preprocessing&#34; + self.nb_batch + &#34;.json&#34;,
-            ),
-            &#34;w&#34;,
-            encoding=&#34;utf-8&#34;,
-        ) as saving:
-            # Delete &#34;&#34; if in vocabulary :
-            if &#34;&#34; in self.vocabulary_:
-                del self.vocabulary_[&#34;&#34;]
-            # Order vocab by frequency:
-            ordered = OrderedDict(
-                sorted(
-                    self.vocabulary_.items(), key=lambda x: x[1], reverse=True
-                )
-            )
-            self.vocabulary = {}  # Clear old copy for memory management
-            # Cut vocab:
-            cut_vocab = {}
-            if self.vocabulary_size_ is not None:
-                if &#34;_-_OOV_-_&#34; not in ordered:
-                    self.vocabulary_size_ = self.vocabulary_size_ - 1
-                i = 0
-                for word in ordered:
-                    if i &gt; self.vocabulary_size_:
-                        break
-                    cut_vocab[word] = ordered[word]
-                    i = i + 1
-            print(&#34;Total vocabulary size is {0}&#34;.format(len(cut_vocab)))
-            with open(
-                os.path.join(self.writing_dir_, &#34;len_vocab.txt&#34;),
-                &#34;w&#34;,
-                encoding=&#34;utf-8&#34;,
-            ) as f:
-                f.write(str(len(cut_vocab)))
-            ordered = {}  # Clear old copy for memory management
-            # Add OOV token (must be added AFTER sorting &amp; cutting by frequency!)
-            if &#34;_-_OOV_-_&#34; not in cut_vocab:
-                cut_vocab[&#34;_-_OOV_-_&#34;] = len(cut_vocab)
-            cut_vocab = dict(
-                zip(list(cut_vocab.keys()), [i for i in range(len(cut_vocab))])
-            )
-            json.dump(cut_vocab, saving)</code></pre>
+            text.write(str(head))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1255,9 +1144,9 @@ bigram_dic_ = {bigram : (occurences, score)}</p></section>
     &#34;&#34;&#34;
     for bigrams in self.bigram_dic_.keys():
         i, j = bigrams.split(self.parsing_char_)
-        score = (self.bigram_dic_[bigrams] - self.params[&#39;phrases_delta&#39;]) / (
-            self.unigram_dic_[i] * self.unigram_dic_[j]
-        )
+        score = (
+            self.bigram_dic_[bigrams] - self.params[&#34;phrases_delta&#34;]
+        ) / (self.unigram_dic_[i] * self.unigram_dic_[j])
         self.bigram_dic_[bigrams] = (self.bigram_dic_[bigrams], score)</code></pre>
 </details>
 </dd>
@@ -1307,7 +1196,8 @@ phrases, with their occurences.</p></section>
 <span>def <span class="ident">clean</span></span>(<span>self, text)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Parses a text, tokenize, lowers and replace ints and floats by a special token</p>
+<section class="desc"><p>Parses a text, tokenize, lowers and replace ints and floats by a
+special token</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>text</code></strong> :&ensp;<code>str</code></dt>
@@ -1323,7 +1213,8 @@ phrases, with their occurences.</p></section>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def clean(self, text):
-    &#34;&#34;&#34;Parses a text, tokenize, lowers and replace ints and floats by a special token
+    &#34;&#34;&#34;Parses a text, tokenize, lowers and replace ints and floats by a
+    special token
     Args:
         text : str
             a text represented as a string
@@ -1332,8 +1223,9 @@ phrases, with their occurences.</p></section>
             a clean text
     &#34;&#34;&#34;
     words = self.tok.tokenize(text)
-    words = &#39; &#39;.join(map(lambda x: convertFloat(convertInt(x.lower())),
-                         words))
+    words = &#34; &#34;.join(
+        map(lambda x: convertFloat(convertInt(x.lower())), words)
+    )
     return words</code></pre>
 </details>
 </dd>
@@ -1360,36 +1252,47 @@ self.log_dir</p>
         filenames : str or list of str
             the list of file names in the given batch
     &#34;&#34;&#34;
-    logger.info(&#39;Started fitting&#39;)
+    logger.info(&#34;Started fitting&#34;)
     batches = self.get_batches(filenames)
-    logger.info(&#39;Defined {} batches for multiprocessing&#39;.format(cpu_count()))
-    logger.info(&#39;Starting parallelized fitting&#39;)
+    logger.info(
+        &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+    )
+    logger.info(&#34;Starting parallelized fitting&#34;)
     pool = Pool(processes=cpu_count())
     results = pool.map(self.fit_batch, batches)
     pool.close()
     pool.terminate()
     pool.join()
-    logger.info(&#39;Received {} batches results&#39;)
-    logger.info(&#39;Melting unigram and bigrams dictionnaries&#39;)
+    logger.info(&#34;Received {} batches results&#34;)
+    logger.info(&#34;Melting unigram and bigrams dictionnaries&#34;)
     self.unigram_dic_ = {}
     self.bigram_dic_ = {}
     for j in range(len(results)):
         self.unigram_dic_ = melt_vocab_dic(
             self.unigram_dic_, results[j][0]
         )
-        self.bigram_dic_ = melt_vocab_dic(
-            self.bigram_dic_, results[j][1]
-        )
+        self.bigram_dic_ = melt_vocab_dic(self.bigram_dic_, results[j][1])
         results[j] = 0  # Clears memory
     del results
     gc.collect()
+    logger.info(&#34;Building word phrases score&#34;)
     self.build_score()
     self.phrasewords_ = {}
     self.phrasewords()
     self.vocabulary_ = {}
     self.build_vocab()
     self.wordcount2freq()
-    self.subsample_freq_dic()</code></pre>
+    logger.info(&#34;Subsampling unfrequent words&#34;)
+    self.subsample_freq_dic()
+    logger.info(&#34;Corpus fitted&#34;)
+    self.fitted = True
+    logger.info(&#34;Saving vocabulary&#34;)
+    with open(
+        op.path.join(self.log_dir, &#34;vocabulary.json&#34;),
+        &#34;w&#34;,
+        encoding=&#34;utf-8&#34;,
+    ) as f:
+        json.dump(self.vocabulary_, f)</code></pre>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.Preprocessor.fit_batch"><code class="name flex">
@@ -1430,99 +1333,13 @@ self.log_dir</p>
     for file in filebatch:
         text = openFile(file)
         cleaned_text = self.clean(text)
-        # delete_punctuation only delete punctuation if the option is
-        # activated.
         unig = melt_vocab_dic(get_unigram_voc(cleaned_text), unig)
-        big = melt_vocab_dic(get_bigram_voc(cleaned_text, self.parsing_char_), big)
+        big = melt_vocab_dic(
+            get_bigram_voc(cleaned_text, self.parsing_char_), big
+        )
         del text
         del cleaned_text
     return [unig, big]</code></pre>
-</details>
-</dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.fit_transform"><code class="name flex">
-<span>def <span class="ident">fit_transform</span></span>(<span>self, nb_proc=8, given_filebatch=None, transform=True)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Global method that first iterates word phrases detection and gathering,
-then subsamples. For each iteration of WP detection, the method firstly
-fits scores &amp; frequencies, batch per batch, and then transforms data,
-batch per batch too. It takes the data from data_dir and writes the
-cleaned data in writing_dir.</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fit_transform(
-    self, nb_proc=cpu_count(), given_filebatch=None, transform=True
-):
-    &#34;&#34;&#34;
-    Global method that first iterates word phrases detection and gathering,
-    then subsamples. For each iteration of WP detection, the method firstly
-    fits scores &amp; frequencies, batch per batch, and then transforms data,
-    batch per batch too. It takes the data from data_dir and writes the
-    cleaned data in writing_dir.
-    &#34;&#34;&#34;
-    if given_filebatch is None:
-        # Get file names from the data directory :
-        filenames = self.filenames
-    else:
-        filenames = given_filebatch
-    # Create data batches to feed function maping
-    print(&#34;Getting filenames...&#34;)
-    batches_size = max(1, len(filenames) // nb_proc)
-    batches = []
-    for i in range(nb_proc):
-        batch = []
-        for j in range(batches_size):
-            try:
-                batch.append(filenames.pop())
-            except:
-                pass
-        batches.append(batch)
-    for n in range(self.n_iter_phrases_):
-        print(
-            &#34;Entering {0}-th iteration of word phrase &#34;.format(n + 1)
-            + &#34;recognition...\n&#34;
-        )
-        print(&#34;Entering fitting phase...&#34;)
-        pool = Pool(processes=nb_proc)
-        results = pool.map(self.fit_map, batches)
-        pool.close()
-        pool.terminate()
-        pool.join()
-
-        print(&#34;Melting unigram and bigrams dictionnaries...&#34;)
-        for j in range(len(results)):
-            self.unigram_dic_ = melt_vocab_dic(
-                self.unigram_dic_, results[j][0]
-            )
-            self.bigram_dic_ = melt_vocab_dic(
-                self.bigram_dic_, results[j][1]
-            )
-            results[j] = 0  # Clears memory
-        del results
-        gc.collect()
-        print(&#34;Finishing fitting...&#34;)
-        self.build_score()
-        self.phrasewords()
-        self.build_vocab()
-        self.wordcount2freq()
-        self.subsample_freq_dic()
-        self.save()
-
-        if transform:
-            args = [(batches[i], n) for i in range(len(batches))]
-            print(&#34;Entering transform phase...&#34;)
-            pool = Pool(processes=nb_proc)
-            pool.starmap(self.transform, args)
-            pool.close()
-            pool.terminate()
-            pool.join()
-    print(&#34;Editing Summary...&#34;)
-    self.get_summary()
-    gc.collect()
-    del self.vocabulary_
-    gc.collect()</code></pre>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.Preprocessor.get_batches"><code class="name flex">
@@ -1557,18 +1374,18 @@ transform the data on.</dd>
     &#34;&#34;&#34;
     if type(filenames) == str:
         if os.path.isdir(filenames):
-            ls = glob(os.path.join(filenames, &#39;*&#39;))
+            ls = glob(os.path.join(filenames, &#34;*&#34;))
     elif type(filenames) == list:
         ls = filenames
     else:
-        logger.error(&#39;Bad type for filenames, must be str or list of str&#39;)
+        logger.error(&#34;Bad type for filenames, must be str or list of str&#34;)
     batches = []
     cpu = cpu_count()
     n = len(ls)
     if n &gt;= cpu:
-        for i in range(cpu-1):
-            batches.append(ls[(n//cpu)*i:(n//cpu)*(i+1)])
-        batches.append(ls[(n//cpu)*(cpu-1):])
+        for i in range(cpu - 1):
+            batches.append(ls[(n // cpu) * i : (n // cpu) * (i + 1)])
+        batches.append(ls[(n // cpu) * (cpu - 1) :])
     else:
         batches = list(map(lambda x: [x], ls))
     assert len(batches) == min(cpu, n)
@@ -1579,14 +1396,16 @@ transform the data on.</dd>
 <span>def <span class="ident">get_summary</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Writes a summary of the fitting in the log_dir</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_summary(self):
+    &#34;&#34;&#34; Writes a summary of the fitting in the log_dir
+    &#34;&#34;&#34;
     with open(
-        os.path.join(self.vocab_dir, &#34;Summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        os.path.join(self.log_dir, &#34;summary.txt&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
     ) as text:
         text.write(&#34;Parameters: \n-------------------- \n&#34;)
         text.write(
@@ -1668,67 +1487,28 @@ phrases, with their occurences.</p></section>
     phrases, with their occurences.
     &#34;&#34;&#34;
     for bigrams in self.bigram_dic_:
-        if self.bigram_dic_[bigrams][1] &gt; self.params[&#39;phrases_threshold&#39;]:
+        if self.bigram_dic_[bigrams][1] &gt; self.params[&#34;phrases_threshold&#34;]:
             self.phrasewords_[bigrams] = self.bigram_dic_[bigrams][0]</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.save"><code class="name flex">
-<span>def <span class="ident">save</span></span>(<span>self)</span>
+<dt id="embeddings.preprocessing.preprocessor.Preprocessor.save_word_phrases"><code class="name flex">
+<span>def <span class="ident">save_word_phrases</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Saves downsampled vocab, by frequency, with eventual size cut</p></section>
+<section class="desc"><p>Saves word phrases as a json file in log_dir</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def save(self):
-    &#34;&#34;&#34;
-    Saves downsampled vocab, by frequency, with eventual size cut
+<pre><code class="python">def save_word_phrases(self):
+    &#34;&#34;&#34;Saves word phrases as a json file in log_dir
     &#34;&#34;&#34;
     with open(
-        os.path.join(
-            self.writing_dir_,
-            &#34;saved_preprocessing&#34; + self.nb_batch + &#34;.json&#34;,
-        ),
+        os.path.join(self.log_dir, &#34;WordPhrases.json&#34;),
         &#34;w&#34;,
         encoding=&#34;utf-8&#34;,
-    ) as saving:
-        # Delete &#34;&#34; if in vocabulary :
-        if &#34;&#34; in self.vocabulary_:
-            del self.vocabulary_[&#34;&#34;]
-        # Order vocab by frequency:
-        ordered = OrderedDict(
-            sorted(
-                self.vocabulary_.items(), key=lambda x: x[1], reverse=True
-            )
-        )
-        self.vocabulary = {}  # Clear old copy for memory management
-        # Cut vocab:
-        cut_vocab = {}
-        if self.vocabulary_size_ is not None:
-            if &#34;_-_OOV_-_&#34; not in ordered:
-                self.vocabulary_size_ = self.vocabulary_size_ - 1
-            i = 0
-            for word in ordered:
-                if i &gt; self.vocabulary_size_:
-                    break
-                cut_vocab[word] = ordered[word]
-                i = i + 1
-        print(&#34;Total vocabulary size is {0}&#34;.format(len(cut_vocab)))
-        with open(
-            os.path.join(self.writing_dir_, &#34;len_vocab.txt&#34;),
-            &#34;w&#34;,
-            encoding=&#34;utf-8&#34;,
-        ) as f:
-            f.write(str(len(cut_vocab)))
-        ordered = {}  # Clear old copy for memory management
-        # Add OOV token (must be added AFTER sorting &amp; cutting by frequency!)
-        if &#34;_-_OOV_-_&#34; not in cut_vocab:
-            cut_vocab[&#34;_-_OOV_-_&#34;] = len(cut_vocab)
-        cut_vocab = dict(
-            zip(list(cut_vocab.keys()), [i for i in range(len(cut_vocab))])
-        )
-        json.dump(cut_vocab, saving)</code></pre>
+    ) as f:
+        json.dump(self.wordphrases, f)</code></pre>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.Preprocessor.subsample_freq_dic"><code class="name flex">
@@ -1747,10 +1527,10 @@ to discard the word.</p></section>
     &#34;&#34;&#34;
     Vocab dictionnary frequency subsampling.
     $$p = 1 - \sqrt{\frac{t}{f}}$$
-    With $f$ the frequency of a given word, and $p$ probability 
+    With $f$ the frequency of a given word, and $p$ probability
     to discard the word.
     &#34;&#34;&#34;
-    t = self.params[&#39;freq_threshold&#39;]
+    t = self.params[&#34;freq_threshold&#34;]
     vocab = self.vocab_freq_
     for word in self.vocab_freq_.keys():
         try:  # In some very rare cases, doesn&#39;t work
@@ -1766,37 +1546,98 @@ to discard the word.</p></section>
                 del self.vocabulary_[word]
         except:
             pass
-    return None</code></pre>
+    # Order vocab by frequency:
+    self.vocabulary_ = OrderedDict(
+        sorted(self.vocabulary_.items(), key=lambda x: x[1], reverse=True)
+    )
+    # Cuts if max_voc_size
+    if self.params[&#34;vocabulary_size&#34;] is not None:
+        self.vocabulary_ = {
+            k: self.vocabulary_[k]
+            for k in self.vocabulary_.keys()[
+                : self.params[&#34;vocabulary_size&#34;]
+            ]
+        }</code></pre>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.Preprocessor.transform"><code class="name flex">
-<span>def <span class="ident">transform</span></span>(<span>self, filebatch, n)</span>
+<span>def <span class="ident">transform</span></span>(<span>self, filenames)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Parallelizes the transformation, dumped in writing_dir</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filenames</code></strong> :&ensp;<code>str</code> or <code>list</code> of <code>str</code></dt>
+<dd>the list of file names in the given batch</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def transform(self, filebatch, n):
+<pre><code class="python">def transform(self, filenames):
+    &#34;&#34;&#34;
+    Parallelizes the transformation, dumped in writing_dir
+    Args:
+        filenames : str or list of str
+            the list of file names in the given batch
+    &#34;&#34;&#34;
+    logger.info(&#34;Started fitting&#34;)
+    batches = self.get_batches(filenames)
+    logger.info(
+        &#34;Defined {} batches for multiprocessing&#34;.format(cpu_count())
+    )
+    logger.info(&#34;Starting parallelized transforming&#34;)
+    pool = Pool(processes=cpu_count())
+    pool.map(self.transform_batch, batches)
+    pool.close()
+    pool.terminate()
+    pool.join()
+    logger.info(&#34;Succesfully transformed all the files&#34;)</code></pre>
+</details>
+</dd>
+<dt id="embeddings.preprocessing.preprocessor.Preprocessor.transform_batch"><code class="name flex">
+<span>def <span class="ident">transform_batch</span></span>(<span>self, filebatch)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Transforms a batch by cleaning the text, gathering word phrases,
+replacing subsampled words by UNK token.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filebatch</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>the list of paths to the files</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transform_batch(self, filebatch):
+    &#34;&#34;&#34; Transforms a batch by cleaning the text, gathering word phrases,
+    replacing subsampled words by UNK token.
+    Args:
+        filebatch : list of str
+            the list of paths to the files
+    &#34;&#34;&#34;
     for file in filebatch:
-        if n == 0:
-            new_file = os.path.join(
-                self.writing_dir_,
-                file.split(&#34;/&#34;)[-1].split(&#34;.&#34;)[0] + &#34;_cleaned&#34; + &#34;.txt&#34;,
+        new_file = os.path.join(
+            self.params[&#34;writing_dir&#34;],
+            os.path.basename(file) + &#34;_cleaned&#34; + &#34;.txt&#34;,
+        )
+
+        text = openFile(file)
+        cleaned_text = self.clean(text)
+        # Words phrases gathering
+        cleaned_text = self.phrasewords(cleaned_text)
+        # Frequency subsampling
+        cleaned_text = &#34; &#34;.join(
+            map(
+                lambda x: &#34;UNK&#34;
+                if (x not in self.vocabulary_.keys())
+                else x,
+                cleaned_text.split(&#34; &#34;),
             )
-        else:
-            new_file = file
-        sentence = self.delete_punctuation(self.file2sent(file))
-        sentence = self.wordphrases(sentence)
-        # if n == self.n_iter_phrases_-1:
-        #     if not(self.disable_subsampling_):
-        #         sentence = self.subsample_freq(sentence)
-        text = open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;)
-        for i in range(len(sentence)):
-            text.write(&#34; &#34;.join(sentence[i]) + &#34;\n&#34;)
-        text.close()
-        del sentence</code></pre>
+        )
+        with open(new_file, &#34;w&#34;, encoding=&#34;utf-8&#34;) as f:
+            f.write(cleaned_text)</code></pre>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.Preprocessor.wordcount2freq"><code class="name flex">
@@ -1828,75 +1669,73 @@ frequencies. Useful for frenquency subsampling.</p></section>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.Preprocessor.wordphrases"><code class="name flex">
-<span>def <span class="ident">wordphrases</span></span>(<span>self, sentences)</span>
+<span>def <span class="ident">wordphrases</span></span>(<span>self, t)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Batch-per-batch word phrases gathering (in a single token, gathered
-with _ ).</p>
+<section class="desc"><p>word phrases gathering (in a single token, gathered with _ ).</p>
 <h2 id="args">Args</h2>
-<p>sentences : a batch of sentences as a list of words lists.</p>
+<dl>
+<dt><strong><code>t</code></strong> :&ensp;<code>str</code></dt>
+<dd>a text to clean</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>sentences</code></strong> :&ensp;<code>the</code> <code>batch</code> of <code>sentences</code>, <code>with</code> <code>WP</code> <code>gathered</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>t</code></strong> :&ensp;<code>str</code></dt>
+<dd>the cleaned text</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def wordphrases(self, sentences):
+<pre><code class="python">def wordphrases(self, t):
     &#34;&#34;&#34;
-    Batch-per-batch word phrases gathering (in a single token, gathered
-    with _ ).
+    word phrases gathering (in a single token, gathered with _ ).
     Args:
-        sentences : a batch of sentences as a list of words lists.
+        t : str
+            a text to clean
     Returns:
-        sentences : the batch of sentences, with WP gathered
+        t : str
+            the cleaned text
     &#34;&#34;&#34;
     count = 0
-    new_sent = []  # new_sent will store the modified sentences
-    for i in sentences:  # Iterating on sentences
-        new_sent_sent = []
-        # new_sent_sent will store the words of modified sentences
-        # First handling the case where the sentence is just one word
-        # cannot generate any bigram.
-        if len(i) == 1:
-            new_sent_sent = i
-            new_sent.append(new_sent_sent)
-            del new_sent_sent
-        # Then regular cases :
-        else:
-            j = 0
-            while j &lt; (len(i) - 1):  # = for each word in the sentence
-                big = (i[j], i[j + 1])  # getting the (j-th, j+1-th)words
-                # writing the corresponding bigram :
-                bigrams = self.parsing_char_.join(big)
-                # If the bigram is enough frequent to be gathered :
-                if bigrams in self.phrasewords_:
-                    # Then add the bigram as a new word in &#39;new_sent_sent&#39;
-                    new_sent_sent.append(&#34;_&#34;.join(big))
-                    count = count + 1  # Count the number of gathered
-                    # bigrams
-                    # Directly go to the j+2-th word in order to avoid
-                    # repeating the j+1-th word
+    words = t.split(&#34; &#34;)
+    new_words = []
+    # First handling the case where the text is just one word :
+    # cannot generate any bigram.
+    if len(words) == 1:
+        new_words = words
+    # Then regular cases :
+    else:
+        j = 0
+        while j &lt; (len(words) - 1):  # = for each word in the sentence
+            big = (
+                words[j],
+                words[j + 1],
+            )  # getting the (j-th, j+1-th)words
+            # writing the corresponding bigram :
+            bigrams = self.parsing_char_.join(big)
+            # If the bigram is enough frequent to be gathered :
+            if bigrams in self.phrasewords_:
+                # Then add the bigram as a new word in &#39;new_sent_sent&#39;
+                new_words.append(&#34;_&#34;.join(big))
+                count = count + 1  # Count the number of gathered
+                # bigrams
+                # Directly go to the j+2-th word in order to avoid
+                # repeating the j+1-th word
+                j = j + 2
+            # If the bigram is not frequent enough :
+            else:
+                if j == (len(words) - 2):
+                    new_words.append(words[j])
+                    new_words.append(words[j + 1])
                     j = j + 2
-                # If the bigram is not frequent enough :
+                # Add j-th word
                 else:
-                    if j == (len(i) - 2):
-                        new_sent_sent.append(i[j])
-                        new_sent_sent.append(i[j + 1])
-                        j = j + 2
-                    # Add j-th word
-                    else:
-                        new_sent_sent.append(i[j])
-                        # Go to j+1-th word
-                        j = j + 1
-                del big
-                del bigrams
-            # Finally add the sentence to the new sentences list &#39;new_sent&#39;
-            new_sent.append(new_sent_sent)
-            del new_sent_sent
-    return new_sent</code></pre>
+                    new_words.append(words[j])
+                    # Go to j+1-th word
+                    j = j + 1
+
+    return &#34; &#34;.join(new_words)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1926,6 +1765,7 @@ save preprocessors parameter configurations</p></section>
     &#34;&#34;&#34;PreprocessorConfig is a util to write, load, and
     save preprocessors parameter configurations
     &#34;&#34;&#34;
+
     def __init__(self, log_dir):
         checkExistenceDir(log_dir)
         self.log_dir = log_dir
@@ -1957,33 +1797,31 @@ save preprocessors parameter configurations</p></section>
                 maximum size of the vocabulary
         &#34;&#34;&#34;
         self.params = {}
-        self.params[&#39;n_iter_phrases&#39;] = n_iter_phrases
-        self.params[&#39;phrases_delta&#39;] = phrases_delta
-        self.params[&#39;phrases_threshold&#39;] = phrases_threshold
-        self.params[&#39;freq_threshold&#39;] = freq_threshold
+        self.params[&#34;n_iter_phrases&#34;] = n_iter_phrases
+        self.params[&#34;phrases_delta&#34;] = phrases_delta
+        self.params[&#34;phrases_threshold&#34;] = phrases_threshold
+        self.params[&#34;freq_threshold&#34;] = freq_threshold
         checkExistenceDir(writing_dir)
-        self.params[&#39;writing_dir&#39;] = writing_dir
-        self.params[&#39;vocabulary_size&#39;] = vocabulary_size
+        self.params[&#34;writing_dir&#34;] = writing_dir
+        self.params[&#34;vocabulary_size&#34;] = vocabulary_size
         self.has_config = True
 
     def save_config(self):
         &#34;&#34;&#34;Saves the configuration class as a parameter json in the log_dir
         dir&#34;&#34;&#34;
         if self.has_config:
-            with open(os.path.join(
-                    self.log_dir,
-                    &#39;PreprocessorConfig.json&#39;),
-                    &#39;w&#39;) as f:
+            with open(
+                os.path.join(self.log_dir, &#34;PreprocessorConfig.json&#34;), &#34;w&#34;
+            ) as f:
                 json.dump(self.params, f)
         else:
-            logger.error(&#39;PreprocessorConfig has not been configurated&#39;)
+            logger.error(&#34;PreprocessorConfig has not been configurated&#34;)
 
     def read_config(self):
         &#34;&#34;&#34;Reads an existing config, that must be in the log_dir directory&#34;&#34;&#34;
-        with open(os.path.join(
-                self.log_dir,
-                &#39;PreprocessorConfig.json&#39;),
-                  &#39;r&#39;) as f:
+        with open(
+            os.path.join(self.log_dir, &#34;PreprocessorConfig.json&#34;), &#34;r&#34;
+        ) as f:
             self.params = json.load(f)
         self.has_config = True</code></pre>
 </details>
@@ -2004,10 +1842,9 @@ save preprocessors parameter configurations</p></section>
 </summary>
 <pre><code class="python">def read_config(self):
     &#34;&#34;&#34;Reads an existing config, that must be in the log_dir directory&#34;&#34;&#34;
-    with open(os.path.join(
-            self.log_dir,
-            &#39;PreprocessorConfig.json&#39;),
-              &#39;r&#39;) as f:
+    with open(
+        os.path.join(self.log_dir, &#34;PreprocessorConfig.json&#34;), &#34;r&#34;
+    ) as f:
         self.params = json.load(f)
     self.has_config = True</code></pre>
 </details>
@@ -2026,13 +1863,12 @@ dir</p></section>
     &#34;&#34;&#34;Saves the configuration class as a parameter json in the log_dir
     dir&#34;&#34;&#34;
     if self.has_config:
-        with open(os.path.join(
-                self.log_dir,
-                &#39;PreprocessorConfig.json&#39;),
-                &#39;w&#39;) as f:
+        with open(
+            os.path.join(self.log_dir, &#34;PreprocessorConfig.json&#34;), &#34;w&#34;
+        ) as f:
             json.dump(self.params, f)
     else:
-        logger.error(&#39;PreprocessorConfig has not been configurated&#39;)</code></pre>
+        logger.error(&#34;PreprocessorConfig has not been configurated&#34;)</code></pre>
 </details>
 </dd>
 <dt id="embeddings.preprocessing.preprocessor.PreprocessorConfig.set_config"><code class="name flex">
@@ -2085,13 +1921,13 @@ dir</p></section>
             maximum size of the vocabulary
     &#34;&#34;&#34;
     self.params = {}
-    self.params[&#39;n_iter_phrases&#39;] = n_iter_phrases
-    self.params[&#39;phrases_delta&#39;] = phrases_delta
-    self.params[&#39;phrases_threshold&#39;] = phrases_threshold
-    self.params[&#39;freq_threshold&#39;] = freq_threshold
+    self.params[&#34;n_iter_phrases&#34;] = n_iter_phrases
+    self.params[&#34;phrases_delta&#34;] = phrases_delta
+    self.params[&#34;phrases_threshold&#34;] = phrases_threshold
+    self.params[&#34;freq_threshold&#34;] = freq_threshold
     checkExistenceDir(writing_dir)
-    self.params[&#39;writing_dir&#39;] = writing_dir
-    self.params[&#39;vocabulary_size&#39;] = vocabulary_size
+    self.params[&#34;writing_dir&#34;] = writing_dir
+    self.params[&#34;vocabulary_size&#34;] = vocabulary_size
     self.has_config = True</code></pre>
 </details>
 </dd>
@@ -2123,13 +1959,13 @@ dir</p></section>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.clean" href="#embeddings.preprocessing.preprocessor.Preprocessor.clean">clean</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.fit" href="#embeddings.preprocessing.preprocessor.Preprocessor.fit">fit</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.fit_batch" href="#embeddings.preprocessing.preprocessor.Preprocessor.fit_batch">fit_batch</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.fit_transform" href="#embeddings.preprocessing.preprocessor.Preprocessor.fit_transform">fit_transform</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.get_batches" href="#embeddings.preprocessing.preprocessor.Preprocessor.get_batches">get_batches</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.get_summary" href="#embeddings.preprocessing.preprocessor.Preprocessor.get_summary">get_summary</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.phrasewords" href="#embeddings.preprocessing.preprocessor.Preprocessor.phrasewords">phrasewords</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.save" href="#embeddings.preprocessing.preprocessor.Preprocessor.save">save</a></code></li>
+<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.save_word_phrases" href="#embeddings.preprocessing.preprocessor.Preprocessor.save_word_phrases">save_word_phrases</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.subsample_freq_dic" href="#embeddings.preprocessing.preprocessor.Preprocessor.subsample_freq_dic">subsample_freq_dic</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.transform" href="#embeddings.preprocessing.preprocessor.Preprocessor.transform">transform</a></code></li>
+<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.transform_batch" href="#embeddings.preprocessing.preprocessor.Preprocessor.transform_batch">transform_batch</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.wordcount2freq" href="#embeddings.preprocessing.preprocessor.Preprocessor.wordcount2freq">wordcount2freq</a></code></li>
 <li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.wordphrases" href="#embeddings.preprocessing.preprocessor.Preprocessor.wordphrases">wordphrases</a></code></li>
 </ul>

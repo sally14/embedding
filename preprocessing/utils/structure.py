@@ -38,7 +38,7 @@ def get_unigram_voc(text):
         vocabulary : dic
             a dictionnary {'word' : count_word}
     """
-    words = text.split(' ')  # That's where we assume the text has been
+    words = text.split(" ")  # That's where we assume the text has been
     # cleaned with the cleaning method, otherwise the 'split' leads to bad
     # tokenisation
     vocabulary = dict(Counter(words))
@@ -57,7 +57,7 @@ def get_bigram_voc(text, parsing_char):
         vocab : dic
             a dictionnary {'bigram' : count_bigram}
     """
-    words = text.split(' ')
+    words = text.split(" ")
     bigrams = ngrams(words, 2)
     big_list = []
     for i in bigrams:
