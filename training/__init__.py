@@ -1,5 +1,5 @@
 """
 # Training
 
-Submodules containing the wrapper for gensim's implementation of word2vec. 
+Submodules containing a simple cli wrapper for gensim's implementation of word2vec. 
 """

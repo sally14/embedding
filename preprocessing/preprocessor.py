@@ -77,7 +77,7 @@ class PreprocessorConfig(object):
         self,
         n_iter_phrases=1,
         phrases_delta=0,
-        phrases_threshold=1e-3,
+        phrases_threshold=1e-1,
         freq_threshold=0.1,
         writing_dir="",
         vocabulary_size=None,
