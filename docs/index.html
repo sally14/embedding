@@ -24,12 +24,34 @@
 <p>Embedding generation with text preprocessing.</p>
 <h2 id="preprocessor">Preprocessor</h2>
 <p>For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible.</p>
-<p>Preprocesses the text/set of text in the following way :
-- 1. Detects and replaces numbers/float by a generic token 'FLOAT', 'INT'
-- 2. Add spaces in between punctuation so that tokenisation avoids adding 'word.' to the vocabulary instead of 'word', '.'
-- 3. Lowers words
-- 4. Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens 'new', york' to a single token 'new_york'.
-- 5. Frequency Subsampling : discards unfrequent words with a probability depending on their frequency.</p>
+<p>Preprocesses the text/set of text in the following way :</p>
+<ul>
+<li>
+<ol>
+<li>Detects and replaces numbers/float by a generic token 'FLOAT', 'INT'</li>
+</ol>
+</li>
+<li>
+<ol>
+<li>Add spaces in between punctuation so that tokenisation avoids adding 'word.' to the vocabulary instead of 'word', '.'</li>
+</ol>
+</li>
+<li>
+<ol>
+<li>Lowers words</li>
+</ol>
+</li>
+<li>
+<ol>
+<li>Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens 'new', york' to a single token 'new_york'.</li>
+</ol>
+</li>
+<li>
+<ol>
+<li>Frequency Subsampling : discards unfrequent words with a probability depending on their frequency.</li>
+</ol>
+</li>
+</ul>
 <p>Outputs a vocabulary file and the modified files.</p>
 <p>Usage example :</p>
 <pre><code class="python">from preprocessing.preprocessor import PreprocessorConfig, Preprocessor
@@ -44,7 +66,7 @@ prep.get_summary()
 prep.save_word_phrases()
 prep.transform('~/mydata')
 </code></pre>
-<p>## Word2Vec</p>
+<h2 id="word2vec">Word2Vec</h2>
 <p>For the Word2Vec, we just wrote a simple cli wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (<a href="http://projector.tensorflow.org/">http://projector.tensorflow.org/</a>)</p>
 <p>Usage example:</p>
@@ -70,11 +92,17 @@ Embedding generation with text preprocessing.
 For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible.
 
 Preprocesses the text/set of text in the following way :
+
  - 1. Detects and replaces numbers/float by a generic token &#39;FLOAT&#39;, &#39;INT&#39;
+
  - 2. Add spaces in between punctuation so that tokenisation avoids adding &#39;word.&#39; to the vocabulary instead of &#39;word&#39;, &#39;.&#39;
+
  - 3. Lowers words
+
  - 4. Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens &#39;new&#39;, york&#39; to a single token &#39;new_york&#39;.
+
  - 5. Frequency Subsampling : discards unfrequent words with a probability depending on their frequency.
+
 
  Outputs a vocabulary file and the modified files.
 
@@ -96,7 +124,7 @@ prep.transform(&#39;~/mydata&#39;)
 ```
 
 
- ## Word2Vec
+##  Word2Vec
 
 For the Word2Vec, we just wrote a simple cli wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (http://projector.tensorflow.org/)
@@ -142,6 +170,7 @@ name = &#34;embeddings&#34;</code></pre>
 <ul>
 <li><a href="#embeddings">Embeddings</a><ul>
 <li><a href="#preprocessor">Preprocessor</a></li>
+<li><a href="#word2vec">Word2Vec</a></li>
 </ul>
 </li>
 </ul>

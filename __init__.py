@@ -10,11 +10,17 @@ Embedding generation with text preprocessing.
 For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible.
 
 Preprocesses the text/set of text in the following way :
+
  - 1. Detects and replaces numbers/float by a generic token 'FLOAT', 'INT'
+
  - 2. Add spaces in between punctuation so that tokenisation avoids adding 'word.' to the vocabulary instead of 'word', '.'
+
  - 3. Lowers words
+
  - 4. Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens 'new', york' to a single token 'new_york'.
+
  - 5. Frequency Subsampling : discards unfrequent words with a probability depending on their frequency.
+
 
  Outputs a vocabulary file and the modified files.
 
@@ -36,7 +42,7 @@ prep.transform('~/mydata')
 ```
 
 
- ## Word2Vec
+##  Word2Vec
 
 For the Word2Vec, we just wrote a simple cli wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (http://projector.tensorflow.org/)
