@@ -461,6 +461,7 @@ class Preprocessor(PreprocessorConfig):
 
             text = openFile(file)
             cleaned_text = self.clean(text)
+            del text
             # Words phrases gathering
             cleaned_text = self.wordphrases(cleaned_text)
             # Frequency subsampling
@@ -474,6 +475,7 @@ class Preprocessor(PreprocessorConfig):
             )
             with open(new_file, "w", encoding="utf-8") as f:
                 f.write(cleaned_text)
+            gc.collect()
 
     def transform(self, filenames):
         """
