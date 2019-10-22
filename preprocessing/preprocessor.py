@@ -35,11 +35,7 @@ prep.transform('~/mydata')
 ```
 
 """
-from preprocessing.utils.readers import (
-    checkExistenceDir,
-    checkExistenceFile,
-    openFile,
-)
+from preprocessing.utils.readers import checkExistenceDir, checkExistenceFile, openFile
 from preprocessing.utils.readers import convertFloat, convertInt
 from preprocessing.utils.structure import melt_vocab_dic
 from preprocessing.utils.structure import get_unigram_voc, get_bigram_voc
@@ -112,18 +108,14 @@ class PreprocessorConfig(object):
         """Saves the configuration class as a parameter json in the log_dir
         dir"""
         if self.has_config:
-            with open(
-                os.path.join(self.log_dir, "PreprocessorConfig.json"), "w"
-            ) as f:
+            with open(os.path.join(self.log_dir, "PreprocessorConfig.json"), "w") as f:
                 json.dump(self.params, f)
         else:
             logger.error("PreprocessorConfig has not been configurated")
 
     def read_config(self):
         """Reads an existing config, that must be in the log_dir directory"""
-        with open(
-            os.path.join(self.log_dir, "PreprocessorConfig.json"), "r"
-        ) as f:
+        with open(os.path.join(self.log_dir, "PreprocessorConfig.json"), "r") as f:
             self.params = json.load(f)
         self.has_config = True
 
@@ -161,15 +153,26 @@ class Preprocessor(PreprocessorConfig):
     ```
     """
 
-    def __init__(self, log_dir):
+    def __init__(self, log_dir, from_log=False):
         self.log_dir = log_dir
-        if checkExistenceFile(
-            os.path.join(log_dir, "PreprocessorConfig.json")
-        ):
+        if checkExistenceFile(os.path.join(log_dir, "PreprocessorConfig.json")):
             self.read_config()
         self.tok = ToktokTokenizer()
         self.parsing_char_ = sha1(b"sally14").hexdigest()
         self.fitted = False
+        if from_log:
+            self.fitted = True
+            with open(
+                os.path.join(self.log_dir, "vocabulary.json"), "r", encoding="utf-8"
+            ) as f:
+                self.vocabulary_ = json.load(f)
+            with open(
+                os.path.join(self.log_dir, "WordPhrases.json"), "r", encoding="utf-8"
+            ) as f:
+                p = json.load(f)
+                self.phrasewords_ = {
+                    i.replace("_", self.parsing_char_): p[i] for i in p.keys()
+                }
 
     def get_batches(self, filenames):
         """Defines the filename batches to multiprocess fitting and transformation
@@ -218,9 +221,7 @@ class Preprocessor(PreprocessorConfig):
             text = openFile(file)
             cleaned_text = self.clean(text)
             unig = melt_vocab_dic(get_unigram_voc(cleaned_text), unig)
-            big = melt_vocab_dic(
-                get_bigram_voc(cleaned_text, self.parsing_char_), big
-            )
+            big = melt_vocab_dic(get_bigram_voc(cleaned_text, self.parsing_char_), big)
             del text
             del cleaned_text
         return [unig, big]
@@ -235,9 +236,7 @@ class Preprocessor(PreprocessorConfig):
         """
         logger.info("Started fitting")
         batches = self.get_batches(filenames)
-        logger.info(
-            "Defined {} batches for multiprocessing".format(cpu_count())
-        )
+        logger.info("Defined {} batches for multiprocessing".format(cpu_count()))
         logger.info("Starting parallelized fitting")
         pool = Pool(processes=cpu_count())
         results = pool.map(self.fit_batch, batches)
@@ -249,9 +248,7 @@ class Preprocessor(PreprocessorConfig):
         self.unigram_dic_ = {}
         self.bigram_dic_ = {}
         for j in range(len(results)):
-            self.unigram_dic_ = melt_vocab_dic(
-                self.unigram_dic_, results[j][0]
-            )
+            self.unigram_dic_ = melt_vocab_dic(self.unigram_dic_, results[j][0])
             self.bigram_dic_ = melt_vocab_dic(self.bigram_dic_, results[j][1])
             results[j] = 0  # Clears memory
         del results
@@ -269,9 +266,7 @@ class Preprocessor(PreprocessorConfig):
         self.fitted = True
         logger.info("Saving vocabulary")
         with open(
-            os.path.join(self.log_dir, "vocabulary.json"),
-            "w",
-            encoding="utf-8",
+            os.path.join(self.log_dir, "vocabulary.json"), "w", encoding="utf-8"
         ) as f:
             json.dump(self.vocabulary_, f)
 
@@ -286,9 +281,7 @@ class Preprocessor(PreprocessorConfig):
                 a clean text
         """
         words = self.tok.tokenize(text)
-        words = " ".join(
-            map(lambda x: convertFloat(convertInt(x.lower())), words)
-        )
+        words = " ".join(map(lambda x: convertFloat(convertInt(x.lower())), words))
         return words
 
     def build_score(self):
@@ -299,9 +292,9 @@ class Preprocessor(PreprocessorConfig):
         """
         for bigrams in self.bigram_dic_.keys():
             i, j = bigrams.split(self.parsing_char_)
-            score = (
-                self.bigram_dic_[bigrams] - self.params["phrases_delta"]
-            ) / (self.unigram_dic_[i] * self.unigram_dic_[j])
+            score = (self.bigram_dic_[bigrams] - self.params["phrases_delta"]) / (
+                self.unigram_dic_[i] * self.unigram_dic_[j]
+            )
             self.bigram_dic_[bigrams] = (self.bigram_dic_[bigrams], score)
 
     def build_vocab(self):
@@ -391,9 +384,7 @@ class Preprocessor(PreprocessorConfig):
         if self.params["vocabulary_size"] is not None:
             self.vocabulary_ = {
                 k: self.vocabulary_[k]
-                for k in self.vocabulary_.keys()[
-                    : self.params["vocabulary_size"]
-                ]
+                for k in self.vocabulary_.keys()[: self.params["vocabulary_size"]]
             }
 
     def wordphrases(self, t):
@@ -417,10 +408,7 @@ class Preprocessor(PreprocessorConfig):
         else:
             j = 0
             while j < (len(words) - 1):  # = for each word in the sentence
-                big = (
-                    words[j],
-                    words[j + 1],
-                )  # getting the (j-th, j+1-th)words
+                big = (words[j], words[j + 1])  # getting the (j-th, j+1-th)words
                 # writing the corresponding bigram :
                 bigrams = self.parsing_char_.join(big)
                 # If the bigram is enough frequent to be gathered :
@@ -455,8 +443,7 @@ class Preprocessor(PreprocessorConfig):
         """
         for file in filebatch:
             new_file = os.path.join(
-                self.params["writing_dir"],
-                os.path.basename(file) + "_cleaned" + ".txt",
+                self.params["writing_dir"], os.path.basename(file) + "_cleaned" + ".txt"
             )
 
             text = openFile(file)
@@ -466,12 +453,10 @@ class Preprocessor(PreprocessorConfig):
             cleaned_text = self.wordphrases(cleaned_text)
             # Frequency subsampling
             cleaned_text = " ".join(
-               map(
-                   lambda x: "UNK"
-                   if (x not in self.vocabulary_.keys())
-                   else x,
-                   cleaned_text.split(" ")
-               )
+                map(
+                    lambda x: "UNK" if (x not in self.vocabulary_.keys()) else x,
+                    cleaned_text.split(" "),
+                )
             )
             with open(new_file, "w", encoding="utf-8") as f:
                 f.write(cleaned_text)
@@ -485,13 +470,11 @@ class Preprocessor(PreprocessorConfig):
                 the list of file names in the given batch
         """
         if not self.fitted:
-            logger.error('No fitting, aborting')
+            logger.error("No fitting, aborting")
         else:
             logger.info("Started transform")
             batches = self.get_batches(filenames)
-            logger.info(
-                "Defined {} batches for multiprocessing".format(cpu_count())
-            )
+            logger.info("Defined {} batches for multiprocessing".format(cpu_count()))
             logger.info("Starting parallelized transforming")
             pool = Pool(processes=cpu_count())
             pool.map(self.transform_batch, batches)
@@ -508,9 +491,7 @@ class Preprocessor(PreprocessorConfig):
             for k in self.phrasewords_.keys()
         }
         with open(
-            os.path.join(self.log_dir, "WordPhrases.json"),
-            "w",
-            encoding="utf-8",
+            os.path.join(self.log_dir, "WordPhrases.json"), "w", encoding="utf-8"
         ) as f:
             json.dump(cleaned_phrases, f)
 
@@ -540,9 +521,7 @@ class Preprocessor(PreprocessorConfig):
             head = dict(
                 [
                     (key.replace(self.parsing_char_, "_"), dico[key])
-                    for key in sorted(dico.keys())[
-                        len(dico) // 2 : len(dico) // 2 + 20
-                    ]
+                    for key in sorted(dico.keys())[len(dico) // 2 : len(dico) // 2 + 20]
                 ]
             )
             text.write(str(head))
@@ -551,9 +530,7 @@ class Preprocessor(PreprocessorConfig):
             head = dict(
                 [
                     (key.replace(self.parsing_char_, "_"), dico[key])
-                    for key in sorted(dico.keys())[
-                        len(dico) // 2 : len(dico) // 2 + 20
-                    ]
+                    for key in sorted(dico.keys())[len(dico) // 2 : len(dico) // 2 + 20]
                 ]
             )
             text.write(str(head))

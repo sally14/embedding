@@ -4,7 +4,7 @@ with open("../embeddings/README.md", "r") as fh:
     long_description = fh.read()
 
 with open("../embeddings/requirements.txt", "r") as fh:
-    req = fh.read().split('\n')
+    req = fh.read().split("\n")
 
 setuptools.setup(
     name="embeddings",
@@ -21,6 +21,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
-    install_requires=req
+    python_requires=">=3.6",
+    install_requires=req,
 )

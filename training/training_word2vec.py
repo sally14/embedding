@@ -91,9 +91,5 @@ if __name__ == "__main__":
                         else:
                             vectors.write(str(vector[j]) + "\t")
                 except:
-                    print(
-                        "{0} not in vocabulary. Passing. \n".format(
-                            inv_vocab[i]
-                        )
-                    )
+                    print("{0} not in vocabulary. Passing. \n".format(inv_vocab[i]))
                     pass
