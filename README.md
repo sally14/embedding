@@ -34,8 +34,7 @@ config.save_config()
 
 prep = Preprocessor('/tmp/logdir')
 prep.fit('~/mydata/')
-prep.get_summary()
-prep.save_word_phrases()
+prep.filter()
 prep.transform('~/mydata')
 ```
 

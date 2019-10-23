@@ -62,11 +62,15 @@ prep.transform('~/mydata')  # Transforms the texts with the filtered vocab.
 For the Word2Vec, we just wrote a simple cli wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (http://projector.tensorflow.org/)
 
-Usage example:
+#### Usage example:
 
 ```bash
 python training_word2vec.py file_dir writing_dir
 ```
+
+## Contributing
+
+Any github issue, contribution or suggestion is welcomed! You can open issues on the [github repository](https://github.com/sally14/embeddings).
 
 """
 name = "embeddings"

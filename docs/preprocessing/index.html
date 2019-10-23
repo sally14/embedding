@@ -23,6 +23,59 @@
 <h1 id="preprocessing">Preprocessing</h1>
 <p>Submodule containing all the preprocessing classes to prepare text for
 embeddings learning.</p>
+<h2 id="quick-overview">Quick overview</h2>
+<p>The preprocessing module preprocesses the text/set of text in the following way :</p>
+<ol>
+<li>
+<p>Detects and replaces numbers/float by a generic token 'FLOAT', 'INT'</p>
+</li>
+<li>
+<p>Add spaces in between punctuation so that tokenisation avoids adding 'word.' to the vocabulary instead of 'word', '.'</p>
+</li>
+<li>
+<p>Lowers words</p>
+</li>
+<li>
+<p>Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens 'new', york' to a single token 'new_york'.</p>
+</li>
+<li>
+<p>Frequency Subsampling : discards unfrequent words with a probability depending on their frequency.</p>
+</li>
+</ol>
+<p>The module enables to save a vocabulary file and the modified files.</p>
+<h2 id="usage-example">Usage example</h2>
+<p>Creating and saving a loadable configuration:</p>
+<pre><code class="python">from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+config = PreprocessorConfig('/tmp/logdir')
+config.set_config(writing_dir='/tmp/outputs')
+config.save_config()
+</code></pre>
+<pre><code class="python">prep = Preprocessor('/tmp/logdir')  # Loads the config object in /tmp/logdir if it exists
+prep.fit('~/mydata/')  # Fits the unigram &amp; bigrams occurences
+prep.filter()  # Filters with all the config parameters
+prep.transform('~/mydata')  # Transforms the texts with the filtered vocab.
+</code></pre>
+<h2 id="computational-specifications">Computational specifications</h2>
+<p>This code is intended to be robust to very large corpus and is then multiprocessed. The module automatically retrieves the number of threads available on the computer and reads the texts to fit and transform them in parallel over all threads. The module will automatically use all threads, and for now there is no option to change that. Please fill a github issue if such an option is needed.</p>
+<h2 id="detailed-background">Detailed background</h2>
+<p>There are two main parts in Mikolov and al.'s preprocessing : learning word phrases like 'New York City' and gather it as a single token 'New_York_City'; and subsampling words regarding their frequencies.</p>
+<h3 id="1-learning-phrases">1 Learning phrases</h3>
+<p>Inspired from the following article:
+Mikolov, T., Sutskever, I., Chen, K., Corrado, G. S., &amp; Dean, J. (2013). Distributed Representations of Words and Phrases and their Compositionality.</p>
+<blockquote>
+<p>Use of a simple data-driven approach, where phrases are formed based on the unigram and bigram counts:
+<p align="center"><img src="https://latex.codecogs.com/gif.latex?score(w_i,%20w_j)%20=%20&#x5C;frac{count(w_iw_j)%20-%20&#x5C;delta}{count(w_i)&#x5C;cdot%20count(w_j)}"/></p></p>
+<p>The <img src="https://latex.codecogs.com/gif.latex?&#x5C;delta"/> is used as a discounting coefficient and prevents too many phrases consisting of very infrequent words to be formed. The bigrams with score above the chosen threshold are then used as phrases. Typically, we run 2-4 passes over the training data with decreasing threshold value, allowing longer phrases that consists of several words to be formed. We evaluate the quality of the phrase representations using a new analogical reasoning task that involves phrases. Table 2 shows examples of the five categories of analogies used in this task. This dataset is publicly available on the <a href="https://code.google.com/archive/p/word2vec/source/default/source">web</a></p>
+</blockquote>
+<p>Example, one pass:</p>
+<pre><code class="python">[&quot;New York City&quot;] #sentence
+[(&quot;New&quot;, &quot;York&quot;), (&quot;York&quot;, &quot;City&quot;)] # bigrams
+[&quot;New_York&quot;, &quot;City&quot;] # new sentence if score &gt; threshold
+</code></pre>
+<h3 id="2-frequency-subsampling">2. Frequency subsampling</h3>
+<p>In order to avoid too frequent words in the corpus, words are subsampled by computing their discarding probability:
+<p align="center"><img src="https://latex.codecogs.com/gif.latex?&#x5C;mathbb{P}(&#x5C;text{Discarding%20}w_i)%20=%201-&#x5C;sqrt{&#x5C;frac{t}{f(w_i)}}"/></p></p>
+<p>Where <img src="https://latex.codecogs.com/gif.latex?f(w_i)"/> is the frequency of word <img src="https://latex.codecogs.com/gif.latex?i"/> over the whole corpus.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -32,6 +85,75 @@ embeddings learning.</p>
 
 Submodule containing all the preprocessing classes to prepare text for
 embeddings learning.
+
+## Quick overview
+
+The preprocessing module preprocesses the text/set of text in the following way :
+
+
+1. Detects and replaces numbers/float by a generic token &#39;FLOAT&#39;, &#39;INT&#39;
+
+2. Add spaces in between punctuation so that tokenisation avoids adding &#39;word.&#39; to the vocabulary instead of &#39;word&#39;, &#39;.&#39;
+
+3. Lowers words
+
+4. Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens &#39;new&#39;, york&#39; to a single token &#39;new_york&#39;.
+
+5. Frequency Subsampling : discards unfrequent words with a probability depending on their frequency.
+
+The module enables to save a vocabulary file and the modified files.
+
+## Usage example
+
+Creating and saving a loadable configuration:
+```python
+from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+config = PreprocessorConfig(&#39;/tmp/logdir&#39;)
+config.set_config(writing_dir=&#39;/tmp/outputs&#39;)
+config.save_config()
+```
+
+```python
+prep = Preprocessor(&#39;/tmp/logdir&#39;)  # Loads the config object in /tmp/logdir if it exists
+prep.fit(&#39;~/mydata/&#39;)  # Fits the unigram &amp; bigrams occurences
+prep.filter()  # Filters with all the config parameters
+prep.transform(&#39;~/mydata&#39;)  # Transforms the texts with the filtered vocab.
+```
+
+
+## Computational specifications
+
+This code is intended to be robust to very large corpus and is then multiprocessed. The module automatically retrieves the number of threads available on the computer and reads the texts to fit and transform them in parallel over all threads. The module will automatically use all threads, and for now there is no option to change that. Please fill a github issue if such an option is needed.
+
+## Detailed background
+
+There are two main parts in Mikolov and al.&#39;s preprocessing : learning word phrases like &#39;New York City&#39; and gather it as a single token &#39;New_York_City&#39;; and subsampling words regarding their frequencies.
+
+
+### 1 Learning phrases
+
+Inspired from the following article:
+Mikolov, T., Sutskever, I., Chen, K., Corrado, G. S., &amp; Dean, J. (2013). Distributed Representations of Words and Phrases and their Compositionality.
+
+&gt; Use of a simple data-driven approach, where phrases are formed based on the unigram and bigram counts:
+&lt;p align=&#34;center&#34;&gt;&lt;img src=&#34;https://latex.codecogs.com/gif.latex?score(w_i,%20w_j)%20=%20&amp;#x5C;frac{count(w_iw_j)%20-%20&amp;#x5C;delta}{count(w_i)&amp;#x5C;cdot%20count(w_j)}&#34;/&gt;&lt;/p&gt;
+
+&gt; The &lt;img src=&#34;https://latex.codecogs.com/gif.latex?&amp;#x5C;delta&#34;/&gt; is used as a discounting coefficient and prevents too many phrases consisting of very infrequent words to be formed. The bigrams with score above the chosen threshold are then used as phrases. Typically, we run 2-4 passes over the training data with decreasing threshold value, allowing longer phrases that consists of several words to be formed. We evaluate the quality of the phrase representations using a new analogical reasoning task that involves phrases. Table 2 shows examples of the five categories of analogies used in this task. This dataset is publicly available on the [web](https://code.google.com/archive/p/word2vec/source/default/source )
+
+Example, one pass:
+```python
+[&#34;New York City&#34;] #sentence
+[(&#34;New&#34;, &#34;York&#34;), (&#34;York&#34;, &#34;City&#34;)] # bigrams
+[&#34;New_York&#34;, &#34;City&#34;] # new sentence if score &gt; threshold
+```
+
+### 2. Frequency subsampling
+
+
+In order to avoid too frequent words in the corpus, words are subsampled by computing their discarding probability:
+&lt;p align=&#34;center&#34;&gt;&lt;img src=&#34;https://latex.codecogs.com/gif.latex?&amp;#x5C;mathbb{P}(&amp;#x5C;text{Discarding%20}w_i)%20=%201-&amp;#x5C;sqrt{&amp;#x5C;frac{t}{f(w_i)}}&#34;/&gt;&lt;/p&gt;
+
+Where &lt;img src=&#34;https://latex.codecogs.com/gif.latex?f(w_i)&#34;/&gt; is the frequency of word &lt;img src=&#34;https://latex.codecogs.com/gif.latex?i&#34;/&gt; over the whole corpus.
 &#34;&#34;&#34;</code></pre>
 </details>
 </section>
@@ -60,7 +182,17 @@ Different utils functions for the preprocessor class.</p></section>
 <h1>Index</h1>
 <div class="toc">
 <ul>
-<li><a href="#preprocessing">Preprocessing</a></li>
+<li><a href="#preprocessing">Preprocessing</a><ul>
+<li><a href="#quick-overview">Quick overview</a></li>
+<li><a href="#usage-example">Usage example</a></li>
+<li><a href="#computational-specifications">Computational specifications</a></li>
+<li><a href="#detailed-background">Detailed background</a><ul>
+<li><a href="#1-learning-phrases">1 Learning phrases</a></li>
+<li><a href="#2-frequency-subsampling">2. Frequency subsampling</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 <ul id="index">
