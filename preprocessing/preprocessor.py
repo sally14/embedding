@@ -147,8 +147,7 @@ class Preprocessor(PreprocessorConfig):
     prep = Preprocessor('/tmp/logdir')  # We suppose we already have a
     # PreprocessorConfig saved in /tmp/logdir
     prep.fit('~/mydata/')
-    prep.get_summary()
-    prep.save_word_phrases()
+    prep.filter()
     prep.transform('~/mydata')
     ```
     """
@@ -253,6 +252,10 @@ class Preprocessor(PreprocessorConfig):
             results[j] = 0  # Clears memory
         del results
         gc.collect()
+
+    def filter(self):
+        """Filters the results based on the configuration, saves the
+        vocabulary and the word phrases"""
         logger.info("Building word phrases score")
         self.build_score()
         self.phrasewords_ = {}
@@ -269,6 +272,8 @@ class Preprocessor(PreprocessorConfig):
             os.path.join(self.log_dir, "vocabulary.json"), "w", encoding="utf-8"
         ) as f:
             json.dump(self.vocabulary_, f)
+        self.save_word_phrases()
+        self.get_summary()
 
     def clean(self, text):
         """Parses a text, tokenize, lowers and replace ints and floats by a

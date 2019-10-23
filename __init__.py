@@ -2,10 +2,21 @@
 # Embeddings
 
 
-Embedding generation with text preprocessing.
+This package is designed to provide easy-to-use python class and cli
+interfaces to:
+
+- clean corpuses in an efficient way in terms of computation time
+
+- generate word2vec embeddings (based on gensim) and directly write them to a format that is compatible with [Tensorflow Projector](http://projector.tensorflow.org/)
+
+Thus, with two classes, or two commands, anyone should be able clean a corpus and generate embeddings that can be uploaded and visualized with Tensorflow Projector.
+
+## Getting started
 
 
-## Preprocessor
+## Main features
+
+### Preprocessing
 
 For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible.
 
@@ -42,7 +53,7 @@ prep.transform('~/mydata')
 ```
 
 
-##  Word2Vec
+### Word2Vec
 
 For the Word2Vec, we just wrote a simple cli wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (http://projector.tensorflow.org/)
