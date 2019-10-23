@@ -13,43 +13,47 @@ Thus, with two classes, or two commands, anyone should be able clean a corpus an
 
 ## Getting started
 
+### Requirements
+
+This packages requires ```gensim```, ```nltk```, and ```docopt``` to run. If
+pip doesn't install this dependencies automatically, you can install it by
+running :
+```bash
+pip install nltk docopt gensim
+```
+
+### Installation
+
+To install this package, simply run :
+```bash
+pip install embeddings
+```
+
+Further versions might include conda builds, but it's currently not the case.
+
 
 ## Main features
 
 ### Preprocessing
 
-For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible.
-
-Preprocesses the text/set of text in the following way :
-
-1. Detects and replaces numbers/float by a generic token 'FLOAT', 'INT'
-
-2. Add spaces in between punctuation so that tokenisation avoids adding 'word.' to the vocabulary instead of 'word', '.'
-
-3. Lowers words
-
-4. Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens 'new', york' to a single token 'new_york'.
-
-5. Frequency Subsampling : discards unfrequent words with a probability depending on their frequency.
+For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available [here](./docs/preprocessing/index.html)
 
 
- Outputs a vocabulary file and the modified files.
+#### Usage example :
 
-Usage example :
-
-
+Creating and saving a loadable configuration:
 ```python
-from preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
 config = PreprocessorConfig('/tmp/logdir')
 config.set_config(writing_dir='/tmp/outputs')
 config.save_config()
+```
 
-
-prep = Preprocessor('/tmp/logdir')
-prep.fit('~/mydata/')
-prep.get_summary()
-prep.save_word_phrases()
-prep.transform('~/mydata')
+```python
+prep = Preprocessor('/tmp/logdir')  # Loads the config object in /tmp/logdir if it exists
+prep.fit('~/mydata/')  # Fits the unigram & bigrams occurences
+prep.filter()  # Filters with all the config parameters
+prep.transform('~/mydata')  # Transforms the texts with the filtered vocab. 
 ```
 
 
@@ -58,16 +62,11 @@ prep.transform('~/mydata')
 For the Word2Vec, we just wrote a simple cli wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (http://projector.tensorflow.org/)
 
-
 Usage example:
 
 ```bash
 python training_word2vec.py file_dir writing_dir
 ```
 
-TODO :
-- [ ] Clean code for CLI wrapper
-- [ ] Also write a python Word2Vec model class so that user doesn't have to switch from python to cli
-- [ ] Also write a cli wrapper for preprocessing
 """
 name = "embeddings"
