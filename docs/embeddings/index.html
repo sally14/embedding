@@ -63,12 +63,11 @@ prep.transform('~/mydata')  # Transforms the texts with the filtered vocab.
 <p>For the Word2Vec, we just wrote a simple wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (<a href="http://projector.tensorflow.org/">http://projector.tensorflow.org/</a>)</p>
 <h4 id="usage-example_1">Usage example:</h4>
-<p>'''python
-from models.word2vec import Word2Vec
+<pre><code class="python">from models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train('./my-preprocessed-data/')
 model.save('./my-output-dir')
-'''</p>
+</code></pre>
 <h2 id="contributing">Contributing</h2>
 <p>Any github issue, contribution or suggestion is welcomed! You can open issues on the <a href="https://github.com/sally14/embeddings">github repository</a>.</p>
 <details class="source">
@@ -142,12 +141,12 @@ preprocessed files as an input, trains a Word2Vec model with gensim and writes t
 #### Usage example:
 
 
-&#39;&#39;&#39;python
+```python
 from models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train(&#39;./my-preprocessed-data/&#39;)
 model.save(&#39;./my-output-dir&#39;)
-&#39;&#39;&#39;
+```
 
 ## Contributing
 

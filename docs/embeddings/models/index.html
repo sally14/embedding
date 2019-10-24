@@ -48,12 +48,11 @@
 </li>
 </ul>
 <h2 id="usage-example">Usage example</h2>
-<p>'''python
-from models.word2vec import Word2Vec
+<pre><code class="python">from models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train('./my-preprocessed-data/')
 model.save('./my-output-dir')
-'''</p>
+</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -86,12 +85,12 @@ The model has 3 main outputs :
 
 ## Usage example
 
-&#39;&#39;&#39;python
+```python
 from models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train(&#39;./my-preprocessed-data/&#39;)
 model.save(&#39;./my-output-dir&#39;)
-&#39;&#39;&#39;
+```
 &#34;&#34;&#34;</code></pre>
 </details>
 </section>
