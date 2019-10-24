@@ -26,7 +26,7 @@ The model has 3 main outputs :
 
 ## Usage example
 
-'''
+'''python
 from models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train('./my-preprocessed-data/')

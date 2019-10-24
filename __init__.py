@@ -65,7 +65,7 @@ preprocessed files as an input, trains a Word2Vec model with gensim and writes t
 #### Usage example:
 
 
-'''
+'''python
 from models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train('./my-preprocessed-data/')
