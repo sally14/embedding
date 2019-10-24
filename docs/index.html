@@ -46,7 +46,7 @@ running :</p>
 <p>Further versions might include conda builds, but it's currently not the case.</p>
 <h2 id="main-features">Main features</h2>
 <h3 id="preprocessing">Preprocessing</h3>
-<p>For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available <a href="./docs/preprocessing/index.html">here</a></p>
+<p>For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available <a href="./preprocessing/index.html">here</a></p>
 <h4 id="usage-example">Usage example :</h4>
 <p>Creating and saving a loadable configuration:</p>
 <pre><code class="python">from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
@@ -60,11 +60,15 @@ prep.filter()  # Filters with all the config parameters
 prep.transform('~/mydata')  # Transforms the texts with the filtered vocab. 
 </code></pre>
 <h3 id="word2vec">Word2Vec</h3>
-<p>For the Word2Vec, we just wrote a simple cli wrapper that takes the
+<p>For the Word2Vec, we just wrote a simple wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (<a href="http://projector.tensorflow.org/">http://projector.tensorflow.org/</a>)</p>
 <h4 id="usage-example_1">Usage example:</h4>
-<pre><code class="bash">python training_word2vec.py file_dir writing_dir
-</code></pre>
+<p>'''
+from models.word2vec import Word2Vec
+model = Word2Vec(emb_size=300, window=5, epochs=3)
+model.train('./my-preprocessed-data/')
+model.save('./my-output-dir')
+'''</p>
 <h2 id="contributing">Contributing</h2>
 <p>Any github issue, contribution or suggestion is welcomed! You can open issues on the <a href="https://github.com/sally14/embeddings">github repository</a>.</p>
 <details class="source">
@@ -109,7 +113,7 @@ Further versions might include conda builds, but it&#39;s currently not the case
 
 ### Preprocessing
 
-For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available [here](./docs/preprocessing/index.html)
+For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available [here](./preprocessing/index.html)
 
 
 #### Usage example :
@@ -132,14 +136,18 @@ prep.transform(&#39;~/mydata&#39;)  # Transforms the texts with the filtered voc
 
 ### Word2Vec
 
-For the Word2Vec, we just wrote a simple cli wrapper that takes the
+For the Word2Vec, we just wrote a simple wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (http://projector.tensorflow.org/)
 
 #### Usage example:
 
-```bash
-python training_word2vec.py file_dir writing_dir
-```
+
+&#39;&#39;&#39;
+from models.word2vec import Word2Vec
+model = Word2Vec(emb_size=300, window=5, epochs=3)
+model.train(&#39;./my-preprocessed-data/&#39;)
+model.save(&#39;./my-output-dir&#39;)
+&#39;&#39;&#39;
 
 ## Contributing
 
@@ -152,13 +160,17 @@ name = &#34;embeddings&#34;</code></pre>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
+<dt><code class="name"><a title="embeddings.cli" href="cli/index.html">embeddings.cli</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="embeddings.models" href="models/index.html">embeddings.models</a></code></dt>
+<dd>
+<section class="desc"><p>Models …</p></section>
+</dd>
 <dt><code class="name"><a title="embeddings.preprocessing" href="preprocessing/index.html">embeddings.preprocessing</a></code></dt>
 <dd>
 <section class="desc"><p>Preprocessing …</p></section>
-</dd>
-<dt><code class="name"><a title="embeddings.training" href="training/index.html">embeddings.training</a></code></dt>
-<dd>
-<section class="desc"><p>Training …</p></section>
 </dd>
 </dl>
 </section>
@@ -198,8 +210,9 @@ name = &#34;embeddings&#34;</code></pre>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
+<li><code><a title="embeddings.cli" href="cli/index.html">embeddings.cli</a></code></li>
+<li><code><a title="embeddings.models" href="models/index.html">embeddings.models</a></code></li>
 <li><code><a title="embeddings.preprocessing" href="preprocessing/index.html">embeddings.preprocessing</a></code></li>
-<li><code><a title="embeddings.training" href="training/index.html">embeddings.training</a></code></li>
 </ul>
 </li>
 </ul>

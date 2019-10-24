@@ -36,7 +36,7 @@ Further versions might include conda builds, but it's currently not the case.
 
 ### Preprocessing
 
-For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available [here](./docs/preprocessing/index.html)
+For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available [here](./preprocessing/index.html)
 
 
 #### Usage example :
@@ -59,14 +59,18 @@ prep.transform('~/mydata')  # Transforms the texts with the filtered vocab.
 
 ### Word2Vec
 
-For the Word2Vec, we just wrote a simple cli wrapper that takes the
+For the Word2Vec, we just wrote a simple wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (http://projector.tensorflow.org/)
 
 #### Usage example:
 
-```bash
-python training_word2vec.py file_dir writing_dir
-```
+
+'''
+from models.word2vec import Word2Vec
+model = Word2Vec(emb_size=300, window=5, epochs=3)
+model.train('./my-preprocessed-data/')
+model.save('./my-output-dir')
+'''
 
 ## Contributing
 

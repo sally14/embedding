@@ -58,8 +58,8 @@ Documentation is available here : https://sally14.github.io/embeddings/
 TODO :
 - [ ] Clean code for CLI wrapper
 
-- [ ] Also write a python Word2Vec model class so that user doesn't have to switch from python to cli
+- [X] Also write a python Word2Vec model class so that user doesn't have to switch from python to cli
 
 - [ ] Also write a cli wrapper for preprocessing
 
-- [ ] Memory leak in preprocessor.transform
+- [X] Memory leak in preprocessor.transform
