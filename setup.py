@@ -7,8 +7,8 @@ with open("../embeddings/requirements.txt", "r") as fh:
     req = fh.read().split("\n")
 
 setuptools.setup(
-    name="embeddings-prep",
-    version="0.1.0",
+    name="embeddingsprep",
+    version="0.1.3",
     author="sally14",
     author_email="sally14.doe@gmail.com",
     description="A word2vec preprocessing and training package",

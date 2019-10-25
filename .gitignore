@@ -19,6 +19,9 @@ archive/
 *.o
 *.so
 *.out
+build/
+dist/
+*.egg*
 
 # Temporary files #
 ###################

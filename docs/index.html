@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.1" />
-<title>embeddings API documentation</title>
+<title>embeddingsprep API documentation</title>
 <meta name="description" content="Embeddings …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>embeddings</code></h1>
+<h1 class="title">Module <code>embeddingsprep</code></h1>
 </header>
 <section id="section-intro">
 <h1 id="embeddings">Embeddings</h1>
@@ -33,49 +33,89 @@ interfaces to:</p>
 </ul>
 <p>Thus, with two classes, or two commands, anyone should be able clean a corpus and generate embeddings that can be uploaded and visualized with Tensorflow Projector.</p>
 <h2 id="getting-started">Getting started</h2>
+<h3 id="installation">Installation</h3>
+<p>To install this package, simply run :</p>
+<pre><code class="bash">pip install embeddingsprep
+</code></pre>
+<p>Further versions might include conda builds, but it's currently not the case.</p>
 <h3 id="requirements">Requirements</h3>
 <p>This packages requires <code>gensim</code>, <code>nltk</code>, and <code>docopt</code> to run. If
 pip doesn't install this dependencies automatically, you can install it by
 running :</p>
 <pre><code class="bash">pip install nltk docopt gensim
 </code></pre>
-<h3 id="installation">Installation</h3>
-<p>To install this package, simply run :</p>
-<pre><code class="bash">pip install embeddings-prep
-</code></pre>
-<p>Further versions might include conda builds, but it's currently not the case.</p>
 <h2 id="main-features">Main features</h2>
 <h3 id="preprocessing">Preprocessing</h3>
 <p>For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available <a href="./preprocessing/index.html">here</a></p>
+<p><strong>IMPORTANT WARNING</strong> :
+Your text data should be represented one of the two following ways :</p>
+<ul>
+<li>
+<p>A simple .txt file, containing all your plain text data. This is not recommended as then, the preprocessing will not be multithreaded.</p>
+</li>
+<li>
+<p>A directory containing many .txt files. The Preprocessor will read all the files in the directory, and will be multithreaded.</p>
+</li>
+</ul>
 <h4 id="usage-example">Usage example :</h4>
-<p>Creating and saving a loadable configuration:</p>
-<pre><code class="python">from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
-config = PreprocessorConfig('/tmp/logdir')
-config.set_config(writing_dir='/tmp/outputs')
+<p>First you need to create and save a Preprocessor configuration file:</p>
+<pre><code class="python">from embeddingsprep.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+config = PreprocessorConfig('~/logdir')
+config.set_config(writing_dir='~/outputs')  # You can additionnally change other preprocessing params.
 config.save_config()
 </code></pre>
+<p>Here, <code>'~/logdir'</code> should be replaced by the path you want to log the preprocessing summary files in. The preprocessing summary files will contain, after fitting the preprocessor:</p>
+<ul>
+<li>
+<p><code>vocabulary.json</code>, the saved final vocabulary, after word phrases gathering and frequency subsampling.</p>
+</li>
+<li>
+<p><code>WordPhrases.json</code>, the word phrases vocabulary.</p>
+</li>
+<li>
+<p><code>summary.txt</code>, a summary containing informations on the preprocessing fitting.</p>
+</li>
+</ul>
+<p>The <code>writing_dir='~/outputs'</code> argument indicates where the Preprocessor should write the processed files while transforming the data.</p>
 <pre><code class="python">prep = Preprocessor('/tmp/logdir')  # Loads the config object in /tmp/logdir if it exists
-prep.fit('~/mydata/')  # Fits the unigram &amp; bigrams occurences
-prep.filter()  # Filters with all the config parameters
+prep.fit('~/mydata/')  # Fits the unigram &amp; bigrams occurences - must be done once
+prep.filter()  # Filters with all the config parameters - can be done multiple times until the best parameters are found
 prep.transform('~/mydata')  # Transforms the texts with the filtered vocab. 
+</code></pre>
+<p>You can additionnally redefine preprocessor parameters multiple times after fitting the data by accessing, for instance for the frequency threshold:</p>
+<pre><code class="python">prep.params['freq_threshold'] = 0.3
 </code></pre>
 <h3 id="word2vec">Word2Vec</h3>
 <p>For the Word2Vec, we just wrote a simple wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (<a href="http://projector.tensorflow.org/">http://projector.tensorflow.org/</a>)</p>
 <h4 id="usage-example_1">Usage example:</h4>
-<pre><code class="python">from models.word2vec import Word2Vec
+<pre><code class="python">from embeddingsprep.models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train('./my-preprocessed-data/')
 model.save('./my-output-dir')
 </code></pre>
+<p><code>'./my-preprocessed-data/'</code> is the directory where the preprocessed files are stored. </p>
+<p><code>'./my-output-dir'</code> is the directory where the embeddings and model will be stored.</p>
+<h2 id="future-work">Future work</h2>
+<p>Future work will include:</p>
+<ul>
+<li>
+<p>Creation of a command line interface</p>
+</li>
+<li>
+<p>Embedding alignements methods</p>
+</li>
+<li>
+<p>More tutorials in the documentation</p>
+</li>
+</ul>
 <h2 id="contributing">Contributing</h2>
 <p>Any github issue, contribution or suggestion is welcomed! You can open issues on the <a href="https://github.com/sally14/embeddings">github repository</a>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
-# Embeddings
+<pre><code class="python">&#34;&#34;&#34;# Embeddings
 
 
 This package is designed to provide easy-to-use python class and cli
@@ -89,6 +129,16 @@ Thus, with two classes, or two commands, anyone should be able clean a corpus an
 
 ## Getting started
 
+### Installation
+
+To install this package, simply run :
+```bash
+pip install embeddingsprep
+```
+
+Further versions might include conda builds, but it&#39;s currently not the case.
+
+
 ### Requirements
 
 This packages requires ```gensim```, ```nltk```, and ```docopt``` to run. If
@@ -98,38 +148,51 @@ running :
 pip install nltk docopt gensim
 ```
 
-### Installation
-
-To install this package, simply run :
-```bash
-pip install embeddings-prep
-```
-
-Further versions might include conda builds, but it&#39;s currently not the case.
-
-
 ## Main features
 
 ### Preprocessing
 
 For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available [here](./preprocessing/index.html)
 
+**IMPORTANT WARNING** :
+Your text data should be represented one of the two following ways :
+
+- A simple .txt file, containing all your plain text data. This is not recommended as then, the preprocessing will not be multithreaded.
+
+- A directory containing many .txt files. The Preprocessor will read all the files in the directory, and will be multithreaded.
 
 #### Usage example :
 
-Creating and saving a loadable configuration:
+First you need to create and save a Preprocessor configuration file:
+
 ```python
-from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
-config = PreprocessorConfig(&#39;/tmp/logdir&#39;)
-config.set_config(writing_dir=&#39;/tmp/outputs&#39;)
+from embeddingsprep.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+config = PreprocessorConfig(&#39;~/logdir&#39;)
+config.set_config(writing_dir=&#39;~/outputs&#39;)  # You can additionnally change other preprocessing params.
 config.save_config()
 ```
 
+Here, ```&#39;~/logdir&#39;``` should be replaced by the path you want to log the preprocessing summary files in. The preprocessing summary files will contain, after fitting the preprocessor:
+
+- ```vocabulary.json```, the saved final vocabulary, after word phrases gathering and frequency subsampling.
+
+- ```WordPhrases.json```, the word phrases vocabulary.
+
+- ```summary.txt```, a summary containing informations on the preprocessing fitting.
+
+The ```writing_dir=&#39;~/outputs&#39;``` argument indicates where the Preprocessor should write the processed files while transforming the data.
+
+
 ```python
 prep = Preprocessor(&#39;/tmp/logdir&#39;)  # Loads the config object in /tmp/logdir if it exists
-prep.fit(&#39;~/mydata/&#39;)  # Fits the unigram &amp; bigrams occurences
-prep.filter()  # Filters with all the config parameters
+prep.fit(&#39;~/mydata/&#39;)  # Fits the unigram &amp; bigrams occurences - must be done once
+prep.filter()  # Filters with all the config parameters - can be done multiple times until the best parameters are found
 prep.transform(&#39;~/mydata&#39;)  # Transforms the texts with the filtered vocab. 
+```
+
+You can additionnally redefine preprocessor parameters multiple times after fitting the data by accessing, for instance for the frequency threshold:
+```python
+prep.params[&#39;freq_threshold&#39;] = 0.3
 ```
 
 
@@ -142,32 +205,44 @@ preprocessed files as an input, trains a Word2Vec model with gensim and writes t
 
 
 ```python
-from models.word2vec import Word2Vec
+from embeddingsprep.models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train(&#39;./my-preprocessed-data/&#39;)
 model.save(&#39;./my-output-dir&#39;)
 ```
 
+```&#39;./my-preprocessed-data/&#39;``` is the directory where the preprocessed files are stored. 
+
+```&#39;./my-output-dir&#39;``` is the directory where the embeddings and model will be stored.
+
+## Future work
+
+Future work will include:
+
+- Creation of a command line interface
+
+- Embedding alignements methods
+
+- More tutorials in the documentation
+
 ## Contributing
 
-Any github issue, contribution or suggestion is welcomed! You can open issues on the [github repository](https://github.com/sally14/embeddings).
-
-&#34;&#34;&#34;
-name = &#34;embeddings-prep&#34;</code></pre>
+Any github issue, contribution or suggestion is welcomed! You can open issues on the [github repository](https://github.com/sally14/embeddings).&#34;&#34;&#34;
+name = &#34;embeddingsprep&#34;</code></pre>
 </details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="embeddings.cli" href="cli/index.html">embeddings.cli</a></code></dt>
+<dt><code class="name"><a title="embeddingsprep.cli" href="cli/index.html">embeddingsprep.cli</a></code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
-<dt><code class="name"><a title="embeddings.models" href="models/index.html">embeddings.models</a></code></dt>
+<dt><code class="name"><a title="embeddingsprep.models" href="models/index.html">embeddingsprep.models</a></code></dt>
 <dd>
 <section class="desc"><p>Models …</p></section>
 </dd>
-<dt><code class="name"><a title="embeddings.preprocessing" href="preprocessing/index.html">embeddings.preprocessing</a></code></dt>
+<dt><code class="name"><a title="embeddingsprep.preprocessing" href="preprocessing/index.html">embeddingsprep.preprocessing</a></code></dt>
 <dd>
 <section class="desc"><p>Preprocessing …</p></section>
 </dd>
@@ -186,8 +261,8 @@ name = &#34;embeddings-prep&#34;</code></pre>
 <ul>
 <li><a href="#embeddings">Embeddings</a><ul>
 <li><a href="#getting-started">Getting started</a><ul>
-<li><a href="#requirements">Requirements</a></li>
 <li><a href="#installation">Installation</a></li>
+<li><a href="#requirements">Requirements</a></li>
 </ul>
 </li>
 <li><a href="#main-features">Main features</a><ul>
@@ -201,6 +276,7 @@ name = &#34;embeddings-prep&#34;</code></pre>
 </li>
 </ul>
 </li>
+<li><a href="#future-work">Future work</a></li>
 <li><a href="#contributing">Contributing</a></li>
 </ul>
 </li>
@@ -209,9 +285,9 @@ name = &#34;embeddings-prep&#34;</code></pre>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="embeddings.cli" href="cli/index.html">embeddings.cli</a></code></li>
-<li><code><a title="embeddings.models" href="models/index.html">embeddings.models</a></code></li>
-<li><code><a title="embeddings.preprocessing" href="preprocessing/index.html">embeddings.preprocessing</a></code></li>
+<li><code><a title="embeddingsprep.cli" href="cli/index.html">embeddingsprep.cli</a></code></li>
+<li><code><a title="embeddingsprep.models" href="models/index.html">embeddingsprep.models</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing" href="preprocessing/index.html">embeddingsprep.preprocessing</a></code></li>
 </ul>
 </li>
 </ul>

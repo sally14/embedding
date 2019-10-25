@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.1" />
-<title>embeddings.preprocessing.preprocessor API documentation</title>
+<title>embeddingsprep.preprocessing.preprocessor API documentation</title>
 <meta name="description" content="Multiprocessed Preprocessing …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>embeddings.preprocessing.preprocessor</code></h1>
+<h1 class="title">Module <code>embeddingsprep.preprocessing.preprocessor</code></h1>
 </header>
 <section id="section-intro">
 <h1 id="multiprocessed-preprocessing">Multiprocessed Preprocessing</h1>
@@ -295,11 +295,27 @@ class Preprocessor(PreprocessorConfig):
             results[j] = 0  # Clears memory
         del results
         gc.collect()
+        with open(
+            os.path.join(self.log_dir, &#34;unigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        ) as f:
+            json.dump(self.unigram_dic_, f)
+        with open(
+            os.path.join(self.log_dir, &#34;bigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        ) as f:
+            json.dump(self.bigram_dic_, f)
 
     def filter(self):
         &#34;&#34;&#34;Filters the results based on the configuration, saves the
         vocabulary and the word phrases&#34;&#34;&#34;
         logger.info(&#34;Building word phrases score&#34;)
+        with open(
+            os.path.join(self.log_dir, &#34;unigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        ) as f:
+            self.unigram_dic_ = json.load(f)
+        with open(
+            os.path.join(self.log_dir, &#34;bigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        ) as f:
+            self.bigram_dic_ = json.load(f)
         self.build_score()
         self.phrasewords_ = {}
         self.phrasewords()
@@ -613,7 +629,7 @@ class Preprocessor(PreprocessorConfig):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor"><code class="flex name class">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor"><code class="flex name class">
 <span>class <span class="ident">Preprocessor</span></span>
 <span>(</span><span>log_dir, from_log=False)</span>
 </code></dt>
@@ -793,11 +809,27 @@ prep.transform('~/mydata')
             results[j] = 0  # Clears memory
         del results
         gc.collect()
+        with open(
+            os.path.join(self.log_dir, &#34;unigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        ) as f:
+            json.dump(self.unigram_dic_, f)
+        with open(
+            os.path.join(self.log_dir, &#34;bigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        ) as f:
+            json.dump(self.bigram_dic_, f)
 
     def filter(self):
         &#34;&#34;&#34;Filters the results based on the configuration, saves the
         vocabulary and the word phrases&#34;&#34;&#34;
         logger.info(&#34;Building word phrases score&#34;)
+        with open(
+            os.path.join(self.log_dir, &#34;unigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        ) as f:
+            self.unigram_dic_ = json.load(f)
+        with open(
+            os.path.join(self.log_dir, &#34;bigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+        ) as f:
+            self.bigram_dic_ = json.load(f)
         self.build_score()
         self.phrasewords_ = {}
         self.phrasewords()
@@ -1103,11 +1135,11 @@ prep.transform('~/mydata')
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig">PreprocessorConfig</a></li>
+<li><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig">PreprocessorConfig</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.build_score"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.build_score"><code class="name flex">
 <span>def <span class="ident">build_score</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1132,7 +1164,7 @@ bigram_dic_ = {bigram : (occurences, score)}</p></section>
         self.bigram_dic_[bigrams] = (self.bigram_dic_[bigrams], score)</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.build_vocab"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.build_vocab"><code class="name flex">
 <span>def <span class="ident">build_vocab</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1174,7 +1206,7 @@ phrases, with their occurences.</p></section>
     self.vocabulary_ = melt_vocab_dic(copy_dict, self.vocabulary_)</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.clean"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.clean"><code class="name flex">
 <span>def <span class="ident">clean</span></span>(<span>self, text)</span>
 </code></dt>
 <dd>
@@ -1211,7 +1243,7 @@ special token</p>
     return words</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.filter"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.filter"><code class="name flex">
 <span>def <span class="ident">filter</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1225,6 +1257,14 @@ vocabulary and the word phrases</p></section>
     &#34;&#34;&#34;Filters the results based on the configuration, saves the
     vocabulary and the word phrases&#34;&#34;&#34;
     logger.info(&#34;Building word phrases score&#34;)
+    with open(
+        os.path.join(self.log_dir, &#34;unigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+    ) as f:
+        self.unigram_dic_ = json.load(f)
+    with open(
+        os.path.join(self.log_dir, &#34;bigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+    ) as f:
+        self.bigram_dic_ = json.load(f)
     self.build_score()
     self.phrasewords_ = {}
     self.phrasewords()
@@ -1246,7 +1286,7 @@ vocabulary and the word phrases</p></section>
     self.get_summary()</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.fit"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.fit"><code class="name flex">
 <span>def <span class="ident">fit</span></span>(<span>self, filenames)</span>
 </code></dt>
 <dd>
@@ -1291,10 +1331,18 @@ self.log_dir</p>
         self.bigram_dic_ = melt_vocab_dic(self.bigram_dic_, results[j][1])
         results[j] = 0  # Clears memory
     del results
-    gc.collect()</code></pre>
+    gc.collect()
+    with open(
+        os.path.join(self.log_dir, &#34;unigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+    ) as f:
+        json.dump(self.unigram_dic_, f)
+    with open(
+        os.path.join(self.log_dir, &#34;bigrams.json&#34;), &#34;w&#34;, encoding=&#34;utf-8&#34;
+    ) as f:
+        json.dump(self.bigram_dic_, f)</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.fit_batch"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.fit_batch"><code class="name flex">
 <span>def <span class="ident">fit_batch</span></span>(<span>self, filebatch)</span>
 </code></dt>
 <dd>
@@ -1341,7 +1389,7 @@ self.log_dir</p>
     return [unig, big]</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.get_batches"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.get_batches"><code class="name flex">
 <span>def <span class="ident">get_batches</span></span>(<span>self, filenames)</span>
 </code></dt>
 <dd>
@@ -1391,7 +1439,7 @@ transform the data on.</dd>
     return batches</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.get_summary"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.get_summary"><code class="name flex">
 <span>def <span class="ident">get_summary</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1445,7 +1493,7 @@ transform the data on.</dd>
         text.write(str(head))</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.phrasewords"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.phrasewords"><code class="name flex">
 <span>def <span class="ident">phrasewords</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1465,7 +1513,7 @@ phrases, with their occurences.</p></section>
             self.phrasewords_[bigrams] = self.bigram_dic_[bigrams][0]</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.save_word_phrases"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.save_word_phrases"><code class="name flex">
 <span>def <span class="ident">save_word_phrases</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1489,7 +1537,7 @@ phrases, with their occurences.</p></section>
         json.dump(cleaned_phrases, f)</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.subsample_freq_dic"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.subsample_freq_dic"><code class="name flex">
 <span>def <span class="ident">subsample_freq_dic</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1538,7 +1586,7 @@ to discard the word.</p></section>
         }</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.transform"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.transform"><code class="name flex">
 <span>def <span class="ident">transform</span></span>(<span>self, filenames)</span>
 </code></dt>
 <dd>
@@ -1576,7 +1624,7 @@ to discard the word.</p></section>
         logger.info(&#34;Succesfully transformed all the files&#34;)</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.transform_batch"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.transform_batch"><code class="name flex">
 <span>def <span class="ident">transform_batch</span></span>(<span>self, filebatch)</span>
 </code></dt>
 <dd>
@@ -1623,7 +1671,7 @@ replacing subsampled words by UNK token.</p>
         gc.collect()</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.wordcount2freq"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.wordcount2freq"><code class="name flex">
 <span>def <span class="ident">wordcount2freq</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1651,7 +1699,7 @@ frequencies. Useful for frenquency subsampling.</p></section>
     self.vocab_freq_ = dico2</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.Preprocessor.wordphrases"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.Preprocessor.wordphrases"><code class="name flex">
 <span>def <span class="ident">wordphrases</span></span>(<span>self, t)</span>
 </code></dt>
 <dd>
@@ -1724,16 +1772,16 @@ frequencies. Useful for frenquency subsampling.</p></section>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig">PreprocessorConfig</a></b></code>:
+<li><code><b><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig">PreprocessorConfig</a></b></code>:
 <ul class="hlist">
-<li><code><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig.read_config" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig.read_config">read_config</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig.save_config" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig.save_config">save_config</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig.set_config" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig.set_config">set_config</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.read_config" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.read_config">read_config</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.save_config" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.save_config">save_config</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.set_config" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.set_config">set_config</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.PreprocessorConfig"><code class="flex name class">
+<dt id="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig"><code class="flex name class">
 <span>class <span class="ident">PreprocessorConfig</span></span>
 <span>(</span><span>log_dir)</span>
 </code></dt>
@@ -1810,11 +1858,11 @@ save preprocessors parameter configurations</p></section>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="embeddings.preprocessing.preprocessor.Preprocessor" href="#embeddings.preprocessing.preprocessor.Preprocessor">Preprocessor</a></li>
+<li><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor">Preprocessor</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="embeddings.preprocessing.preprocessor.PreprocessorConfig.read_config"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.read_config"><code class="name flex">
 <span>def <span class="ident">read_config</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1832,7 +1880,7 @@ save preprocessors parameter configurations</p></section>
     self.has_config = True</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.PreprocessorConfig.save_config"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.save_config"><code class="name flex">
 <span>def <span class="ident">save_config</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1854,7 +1902,7 @@ dir</p></section>
         logger.error(&#34;PreprocessorConfig has not been configurated&#34;)</code></pre>
 </details>
 </dd>
-<dt id="embeddings.preprocessing.preprocessor.PreprocessorConfig.set_config"><code class="name flex">
+<dt id="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.set_config"><code class="name flex">
 <span>def <span class="ident">set_config</span></span>(<span>self, n_iter_phrases=1, phrases_delta=0, phrases_threshold=0.1, freq_threshold=0.1, writing_dir='', vocabulary_size=None)</span>
 </code></dt>
 <dd>
@@ -1929,37 +1977,37 @@ dir</p></section>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="embeddings.preprocessing" href="index.html">embeddings.preprocessing</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing" href="index.html">embeddingsprep.preprocessing</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="embeddings.preprocessing.preprocessor.Preprocessor" href="#embeddings.preprocessing.preprocessor.Preprocessor">Preprocessor</a></code></h4>
+<h4><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor">Preprocessor</a></code></h4>
 <ul class="two-column">
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.build_score" href="#embeddings.preprocessing.preprocessor.Preprocessor.build_score">build_score</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.build_vocab" href="#embeddings.preprocessing.preprocessor.Preprocessor.build_vocab">build_vocab</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.clean" href="#embeddings.preprocessing.preprocessor.Preprocessor.clean">clean</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.filter" href="#embeddings.preprocessing.preprocessor.Preprocessor.filter">filter</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.fit" href="#embeddings.preprocessing.preprocessor.Preprocessor.fit">fit</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.fit_batch" href="#embeddings.preprocessing.preprocessor.Preprocessor.fit_batch">fit_batch</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.get_batches" href="#embeddings.preprocessing.preprocessor.Preprocessor.get_batches">get_batches</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.get_summary" href="#embeddings.preprocessing.preprocessor.Preprocessor.get_summary">get_summary</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.phrasewords" href="#embeddings.preprocessing.preprocessor.Preprocessor.phrasewords">phrasewords</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.save_word_phrases" href="#embeddings.preprocessing.preprocessor.Preprocessor.save_word_phrases">save_word_phrases</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.subsample_freq_dic" href="#embeddings.preprocessing.preprocessor.Preprocessor.subsample_freq_dic">subsample_freq_dic</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.transform" href="#embeddings.preprocessing.preprocessor.Preprocessor.transform">transform</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.transform_batch" href="#embeddings.preprocessing.preprocessor.Preprocessor.transform_batch">transform_batch</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.wordcount2freq" href="#embeddings.preprocessing.preprocessor.Preprocessor.wordcount2freq">wordcount2freq</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.Preprocessor.wordphrases" href="#embeddings.preprocessing.preprocessor.Preprocessor.wordphrases">wordphrases</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.build_score" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.build_score">build_score</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.build_vocab" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.build_vocab">build_vocab</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.clean" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.clean">clean</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.filter" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.filter">filter</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.fit" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.fit">fit</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.fit_batch" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.fit_batch">fit_batch</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.get_batches" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.get_batches">get_batches</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.get_summary" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.get_summary">get_summary</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.phrasewords" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.phrasewords">phrasewords</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.save_word_phrases" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.save_word_phrases">save_word_phrases</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.subsample_freq_dic" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.subsample_freq_dic">subsample_freq_dic</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.transform" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.transform">transform</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.transform_batch" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.transform_batch">transform_batch</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.wordcount2freq" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.wordcount2freq">wordcount2freq</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.Preprocessor.wordphrases" href="#embeddingsprep.preprocessing.preprocessor.Preprocessor.wordphrases">wordphrases</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig">PreprocessorConfig</a></code></h4>
+<h4><code><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig">PreprocessorConfig</a></code></h4>
 <ul class="">
-<li><code><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig.read_config" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig.read_config">read_config</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig.save_config" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig.save_config">save_config</a></code></li>
-<li><code><a title="embeddings.preprocessing.preprocessor.PreprocessorConfig.set_config" href="#embeddings.preprocessing.preprocessor.PreprocessorConfig.set_config">set_config</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.read_config" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.read_config">read_config</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.save_config" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.save_config">save_config</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.set_config" href="#embeddingsprep.preprocessing.preprocessor.PreprocessorConfig.set_config">set_config</a></code></li>
 </ul>
 </li>
 </ul>

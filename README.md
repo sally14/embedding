@@ -25,7 +25,7 @@ pip install nltk docopt gensim
 
 To install this package, simply run :
 ```bash
-pip install embeddings-prep
+pip install embeddingsprep
 ```
 
 Further versions might include conda builds, but it's currently not the case.
@@ -42,7 +42,7 @@ For Word2Vec, we want a soft yet important preprocessing. We want to denoise the
 
 Creating and saving a loadable configuration:
 ```python
-from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+from embeddingsprep.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
 config = PreprocessorConfig('/tmp/logdir')
 config.set_config(writing_dir='/tmp/outputs')
 config.save_config()
@@ -65,7 +65,7 @@ preprocessed files as an input, trains a Word2Vec model with gensim and writes t
 
 
 ```python
-from models.word2vec import Word2Vec
+from embeddingsprep.models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train('./my-preprocessed-data/')
 model.save('./my-output-dir')

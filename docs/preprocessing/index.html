@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.1" />
-<title>embeddings.preprocessing API documentation</title>
+<title>embeddingsprep.preprocessing API documentation</title>
 <meta name="description" content="Preprocessing …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>embeddings.preprocessing</code></h1>
+<h1 class="title">Module <code>embeddingsprep.preprocessing</code></h1>
 </header>
 <section id="section-intro">
 <h1 id="preprocessing">Preprocessing</h1>
@@ -45,7 +45,7 @@ embeddings learning.</p>
 <p>The module enables to save a vocabulary file and the modified files.</p>
 <h2 id="usage-example">Usage example</h2>
 <p>Creating and saving a loadable configuration:</p>
-<pre><code class="python">from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+<pre><code class="python">from embeddingsprep.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
 config = PreprocessorConfig('/tmp/logdir')
 config.set_config(writing_dir='/tmp/outputs')
 config.save_config()
@@ -53,7 +53,7 @@ config.save_config()
 <pre><code class="python">prep = Preprocessor('/tmp/logdir')  # Loads the config object in /tmp/logdir if it exists
 prep.fit('~/mydata/')  # Fits the unigram &amp; bigrams occurences
 prep.filter()  # Filters with all the config parameters
-prep.transform('~/mydata')  # Transforms the texts with the filtered vocab.
+prep.transform('~/mydata')  # Transforms the texts with the filtered vocab. 
 </code></pre>
 <h2 id="computational-specifications">Computational specifications</h2>
 <p>This code is intended to be robust to very large corpus and is then multiprocessed. The module automatically retrieves the number of threads available on the computer and reads the texts to fit and transform them in parallel over all threads. The module will automatically use all threads, and for now there is no option to change that. Please fill a github issue if such an option is needed.</p>
@@ -107,7 +107,7 @@ The module enables to save a vocabulary file and the modified files.
 
 Creating and saving a loadable configuration:
 ```python
-from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+from embeddingsprep.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
 config = PreprocessorConfig(&#39;/tmp/logdir&#39;)
 config.set_config(writing_dir=&#39;/tmp/outputs&#39;)
 config.save_config()
@@ -117,7 +117,7 @@ config.save_config()
 prep = Preprocessor(&#39;/tmp/logdir&#39;)  # Loads the config object in /tmp/logdir if it exists
 prep.fit(&#39;~/mydata/&#39;)  # Fits the unigram &amp; bigrams occurences
 prep.filter()  # Filters with all the config parameters
-prep.transform(&#39;~/mydata&#39;)  # Transforms the texts with the filtered vocab.
+prep.transform(&#39;~/mydata&#39;)  # Transforms the texts with the filtered vocab. 
 ```
 
 
@@ -160,11 +160,11 @@ Where &lt;img src=&#34;https://latex.codecogs.com/gif.latex?f(w_i)&#34;/&gt; is 
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="embeddings.preprocessing.preprocessor" href="preprocessor.html">embeddings.preprocessing.preprocessor</a></code></dt>
+<dt><code class="name"><a title="embeddingsprep.preprocessing.preprocessor" href="preprocessor.html">embeddingsprep.preprocessing.preprocessor</a></code></dt>
 <dd>
 <section class="desc"><p>Multiprocessed Preprocessing …</p></section>
 </dd>
-<dt><code class="name"><a title="embeddings.preprocessing.utils" href="utils/index.html">embeddings.preprocessing.utils</a></code></dt>
+<dt><code class="name"><a title="embeddingsprep.preprocessing.utils" href="utils/index.html">embeddingsprep.preprocessing.utils</a></code></dt>
 <dd>
 <section class="desc"><p>Utils
 Different utils functions for the preprocessor class.</p></section>
@@ -198,13 +198,13 @@ Different utils functions for the preprocessor class.</p></section>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="embeddings" href="../index.html">embeddings</a></code></li>
+<li><code><a title="embeddingsprep" href="../index.html">embeddingsprep</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="embeddings.preprocessing.preprocessor" href="preprocessor.html">embeddings.preprocessing.preprocessor</a></code></li>
-<li><code><a title="embeddings.preprocessing.utils" href="utils/index.html">embeddings.preprocessing.utils</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.preprocessor" href="preprocessor.html">embeddingsprep.preprocessing.preprocessor</a></code></li>
+<li><code><a title="embeddingsprep.preprocessing.utils" href="utils/index.html">embeddingsprep.preprocessing.utils</a></code></li>
 </ul>
 </li>
 </ul>

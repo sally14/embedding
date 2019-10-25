@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.1" />
-<title>embeddings.models API documentation</title>
+<title>embeddingsprep.models API documentation</title>
 <meta name="description" content="Models …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>embeddings.models</code></h1>
+<h1 class="title">Module <code>embeddingsprep.models</code></h1>
 </header>
 <section id="section-intro">
 <h1 id="models">Models</h1>
@@ -48,7 +48,7 @@
 </li>
 </ul>
 <h2 id="usage-example">Usage example</h2>
-<pre><code class="python">from models.word2vec import Word2Vec
+<pre><code class="python">from embeddingsprep.models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train('./my-preprocessed-data/')
 model.save('./my-output-dir')
@@ -86,7 +86,7 @@ The model has 3 main outputs :
 ## Usage example
 
 ```python
-from models.word2vec import Word2Vec
+from embeddingsprep.models.word2vec import Word2Vec
 model = Word2Vec(emb_size=300, window=5, epochs=3)
 model.train(&#39;./my-preprocessed-data/&#39;)
 model.save(&#39;./my-output-dir&#39;)
@@ -97,11 +97,11 @@ model.save(&#39;./my-output-dir&#39;)
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="embeddings.models.utils" href="utils.html">embeddings.models.utils</a></code></dt>
+<dt><code class="name"><a title="embeddingsprep.models.utils" href="utils.html">embeddingsprep.models.utils</a></code></dt>
 <dd>
 <section class="desc"><p>Utils for Word2Vec wrapper</p></section>
 </dd>
-<dt><code class="name"><a title="embeddings.models.word2vec" href="word2vec.html">embeddings.models.word2vec</a></code></dt>
+<dt><code class="name"><a title="embeddingsprep.models.word2vec" href="word2vec.html">embeddingsprep.models.word2vec</a></code></dt>
 <dd>
 <section class="desc"><p>Word2Vec …</p></section>
 </dd>
@@ -128,13 +128,13 @@ model.save(&#39;./my-output-dir&#39;)
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="embeddings" href="../index.html">embeddings</a></code></li>
+<li><code><a title="embeddingsprep" href="../index.html">embeddingsprep</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="embeddings.models.utils" href="utils.html">embeddings.models.utils</a></code></li>
-<li><code><a title="embeddings.models.word2vec" href="word2vec.html">embeddings.models.word2vec</a></code></li>
+<li><code><a title="embeddingsprep.models.utils" href="utils.html">embeddingsprep.models.utils</a></code></li>
+<li><code><a title="embeddingsprep.models.word2vec" href="word2vec.html">embeddingsprep.models.word2vec</a></code></li>
 </ul>
 </li>
 </ul>

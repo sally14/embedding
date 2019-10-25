@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.1" />
-<title>embeddings.models.word2vec API documentation</title>
+<title>embeddingsprep.models.word2vec API documentation</title>
 <meta name="description" content="Word2Vec …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>embeddings.models.word2vec</code></h1>
+<h1 class="title">Module <code>embeddingsprep.models.word2vec</code></h1>
 </header>
 <section id="section-intro">
 <h1 id="word2vec">Word2Vec</h1>
@@ -103,7 +103,8 @@ class Word2Vec(object):
             ), &#34;The path to restore model is not a file. Aborting&#34;
             self.model = gensim.models.Word2Vec.load(self.restore_from)
         else:
-            self.model = gensim.models.Word2Vec(sents,
+            self.model = gensim.models.Word2Vec(
+                sents,
                 size=self.emb_size,
                 window=self.window,
                 min_count=self.min_count,
@@ -165,7 +166,7 @@ class Word2Vec(object):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="embeddings.models.word2vec.Word2Vec"><code class="flex name class">
+<dt id="embeddingsprep.models.word2vec.Word2Vec"><code class="flex name class">
 <span>class <span class="ident">Word2Vec</span></span>
 <span>(</span><span>emb_size=200, window=10, epochs=10, min_count=1, restore_from=False)</span>
 </code></dt>
@@ -250,7 +251,8 @@ gensim word2vec model if the model is to be restored.</dd>
             ), &#34;The path to restore model is not a file. Aborting&#34;
             self.model = gensim.models.Word2Vec.load(self.restore_from)
         else:
-            self.model = gensim.models.Word2Vec(sents,
+            self.model = gensim.models.Word2Vec(
+                sents,
                 size=self.emb_size,
                 window=self.window,
                 min_count=self.min_count,
@@ -304,7 +306,7 @@ gensim word2vec model if the model is to be restored.</dd>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="embeddings.models.word2vec.Word2Vec.save"><code class="name flex">
+<dt id="embeddingsprep.models.word2vec.Word2Vec.save"><code class="name flex">
 <span>def <span class="ident">save</span></span>(<span>self, dir)</span>
 </code></dt>
 <dd>
@@ -362,7 +364,7 @@ gensim word2vec model if the model is to be restored.</dd>
                     pass</code></pre>
 </details>
 </dd>
-<dt id="embeddings.models.word2vec.Word2Vec.train"><code class="name flex">
+<dt id="embeddingsprep.models.word2vec.Word2Vec.train"><code class="name flex">
 <span>def <span class="ident">train</span></span>(<span>self, filenames)</span>
 </code></dt>
 <dd>
@@ -401,7 +403,8 @@ gensim word2vec model if the model is to be restored.</dd>
         ), &#34;The path to restore model is not a file. Aborting&#34;
         self.model = gensim.models.Word2Vec.load(self.restore_from)
     else:
-        self.model = gensim.models.Word2Vec(sents,
+        self.model = gensim.models.Word2Vec(
+            sents,
             size=self.emb_size,
             window=self.window,
             min_count=self.min_count,
@@ -426,16 +429,16 @@ gensim word2vec model if the model is to be restored.</dd>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="embeddings.models" href="index.html">embeddings.models</a></code></li>
+<li><code><a title="embeddingsprep.models" href="index.html">embeddingsprep.models</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="embeddings.models.word2vec.Word2Vec" href="#embeddings.models.word2vec.Word2Vec">Word2Vec</a></code></h4>
+<h4><code><a title="embeddingsprep.models.word2vec.Word2Vec" href="#embeddingsprep.models.word2vec.Word2Vec">Word2Vec</a></code></h4>
 <ul class="">
-<li><code><a title="embeddings.models.word2vec.Word2Vec.save" href="#embeddings.models.word2vec.Word2Vec.save">save</a></code></li>
-<li><code><a title="embeddings.models.word2vec.Word2Vec.train" href="#embeddings.models.word2vec.Word2Vec.train">train</a></code></li>
+<li><code><a title="embeddingsprep.models.word2vec.Word2Vec.save" href="#embeddingsprep.models.word2vec.Word2Vec.save">save</a></code></li>
+<li><code><a title="embeddingsprep.models.word2vec.Word2Vec.train" href="#embeddingsprep.models.word2vec.Word2Vec.train">train</a></code></li>
 </ul>
 </li>
 </ul>
