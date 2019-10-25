@@ -49,20 +49,6 @@ class Word2Vec(object):
         self.min_count = min_count
         self.restore_from = restore_from
 
-        if restore_from:
-            assert os.path.isfile(
-                self.restore_from
-            ), "The path to restore model is not a file. Aborting"
-            self.model = gensim.models.Word2Vec.load(self.restore_from)
-        else:
-            self.model = gensim.models.Word2Vec(
-                sents=None,
-                size=self.emb_size,
-                window=self.window,
-                min_count=self.min_count,
-                workers=cpu_count(),
-            )
-
     def train(self, filenames):
         """ Trains the model with specified params.
         Args:
@@ -80,7 +66,21 @@ class Word2Vec(object):
                 raise TypeError
         else:
             raise TypeError
+
         sents = read_files(filenames)
+        if self.restore_from:
+            assert os.path.isfile(
+                self.restore_from
+            ), "The path to restore model is not a file. Aborting"
+            self.model = gensim.models.Word2Vec.load(self.restore_from)
+        else:
+            self.model = gensim.models.Word2Vec(sents,
+                size=self.emb_size,
+                window=self.window,
+                min_count=self.min_count,
+                workers=cpu_count(),
+            )
+
         self.model.train(sents, total_examples=len(sents), epochs=self.epochs)
 
     def save(self, dir):
@@ -92,7 +92,7 @@ class Word2Vec(object):
         """
         if not (os.path.isdir(dir)):
             os.mkdir(dir)
-        self.model.save(dir, "word2vec.model")
+        self.model.save(os.path.join(dir, "word2vec.model"))
         try:
             vocab_path = glob(dir, "*.json")[0]
             vocab = open_vocab(vocab_path)

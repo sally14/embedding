@@ -18,9 +18,9 @@ The Word2Vec model takes as an input :
 
 The model has 3 main outputs :
 
-- An '''embeddings.tsv''' file, containing one embedding per line, with each coordinates separated by a '\t' token. 
+- An ```embeddings.tsv``` file, containing one embedding per line, with each coordinates separated by a '\t' token. 
 
-- '''A metadata.tsv''' file, containing 1 word per line, each line corresponding to the embedding on the same line in '''embeddings.tsv'''. Warning : the first line of this file has a header, that the '''embeddings.tsv''' file doesn't have, resulting in a shift of one line in the '''embeddings.tsv''' - '''A metadata.tsv''' correspondence.
+- ```A metadata.tsv``` file, containing 1 word per line, each line corresponding to the embedding on the same line in ```embeddings.tsv```. Warning : the first line of this file has a header, that the ```embeddings.tsv``` file doesn't have, resulting in a shift of one line in the ```embeddings.tsv``` - ```A metadata.tsv``` correspondence.
 
 - A word2vec.model file with the trained gensim checkpoints to restore the model from. 
 
