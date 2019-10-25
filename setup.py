@@ -8,7 +8,7 @@ with open("../embeddings/requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="embeddingsprep",
-    version="0.1.3",
+    version="0.1.4",
     author="sally14",
     author_email="sally14.doe@gmail.com",
     description="A word2vec preprocessing and training package",

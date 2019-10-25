@@ -269,11 +269,11 @@ class Preprocessor(PreprocessorConfig):
         vocabulary and the word phrases"""
         logger.info("Building word phrases score")
         with open(
-            os.path.join(self.log_dir, "unigrams.json"), "w", encoding="utf-8"
+            os.path.join(self.log_dir, "unigrams.json"), "r", encoding="utf-8"
         ) as f:
             self.unigram_dic_ = json.load(f)
         with open(
-            os.path.join(self.log_dir, "bigrams.json"), "w", encoding="utf-8"
+            os.path.join(self.log_dir, "bigrams.json"), "r", encoding="utf-8"
         ) as f:
             self.bigram_dic_ = json.load(f)
         self.build_score()
