@@ -1,65 +1,76 @@
-
 # Embeddings
 
 
-Embedding generation with text preprocessing.
+This package is designed to provide easy-to-use python class and cli
+interfaces to:
+
+- clean corpuses in an efficient way in terms of computation time
+
+- generate word2vec embeddings (based on gensim) and directly write them to a format that is compatible with [Tensorflow Projector](http://projector.tensorflow.org/)
+
+Thus, with two classes, or two commands, anyone should be able clean a corpus and generate embeddings that can be uploaded and visualized with Tensorflow Projector.
+
+## Getting started
+
+### Requirements
+
+This packages requires ```gensim```, ```nltk```, and ```docopt``` to run. If
+pip doesn't install this dependencies automatically, you can install it by
+running :
+```bash
+pip install nltk docopt gensim
+```
+
+### Installation
+
+To install this package, simply run :
+```bash
+pip install embeddings-prep
+```
+
+Further versions might include conda builds, but it's currently not the case.
 
 
-## Preprocessor
+## Main features
 
-For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible.
+### Preprocessing
 
-Preprocesses the text/set of text in the following way :
-1. Detects and replaces numbers/float by a generic token 'FLOAT', 'INT'
-
-2. Add spaces in between punctuation so that tokenisation avoids adding 'word.' to the vocabulary instead of 'word', '.'
-
-3. Lowers words
-
-4. Recursive word phrases detection : with a simple probabilistic rule, gathers the tokens 'new', york' to a single token 'new_york'.
-
-5. Frequency Subsampling : discards unfrequent words with a probability depending on their frequency.
-
- Outputs a vocabulary file and the modified files.
-
-Usage example :
+For Word2Vec, we want a soft yet important preprocessing. We want to denoise the text while keeping as much variety and information as possible. A detailed version of what is done during the preprocessing is available [here](./preprocessing/index.html)
 
 
+#### Usage example :
+
+Creating and saving a loadable configuration:
 ```python
-from preprocessing.preprocessor import PreprocessorConfig, Preprocessor
+from embeddings.preprocessing.preprocessor import PreprocessorConfig, Preprocessor
 config = PreprocessorConfig('/tmp/logdir')
 config.set_config(writing_dir='/tmp/outputs')
 config.save_config()
+```
 
-
-prep = Preprocessor('/tmp/logdir')
-prep.fit('~/mydata/')
-prep.filter()
-prep.transform('~/mydata')
+```python
+prep = Preprocessor('/tmp/logdir')  # Loads the config object in /tmp/logdir if it exists
+prep.fit('~/mydata/')  # Fits the unigram & bigrams occurences
+prep.filter()  # Filters with all the config parameters
+prep.transform('~/mydata')  # Transforms the texts with the filtered vocab. 
 ```
 
 
- ## Word2Vec
+### Word2Vec
 
-For the Word2Vec, we just wrote a simple cli wrapper that takes the
+For the Word2Vec, we just wrote a simple wrapper that takes the
 preprocessed files as an input, trains a Word2Vec model with gensim and writes the vocab, embeddings .tsv files that can be visualized with tensorflow projector (http://projector.tensorflow.org/)
 
+#### Usage example:
 
-Usage example:
 
-```bash
-python training_word2vec.py file_dir writing_dir
+```python
+from models.word2vec import Word2Vec
+model = Word2Vec(emb_size=300, window=5, epochs=3)
+model.train('./my-preprocessed-data/')
+model.save('./my-output-dir')
 ```
 
-## Documentation 
+## Contributing
 
-Documentation is available here : https://sally14.github.io/embeddings/
-
-TODO :
-- [ ] Clean code for CLI wrapper
-
-- [X] Also write a python Word2Vec model class so that user doesn't have to switch from python to cli
-
-- [ ] Also write a cli wrapper for preprocessing
-
-- [X] Memory leak in preprocessor.transform
+Any github issue, contribution or suggestion is welcomed! You can open issues on the [github repository](https://github.com/sally14/embeddings).

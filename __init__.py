@@ -26,7 +26,7 @@ pip install nltk docopt gensim
 
 To install this package, simply run :
 ```bash
-pip install embeddings
+pip install embeddings-prep
 ```
 
 Further versions might include conda builds, but it's currently not the case.
@@ -77,4 +77,4 @@ model.save('./my-output-dir')
 Any github issue, contribution or suggestion is welcomed! You can open issues on the [github repository](https://github.com/sally14/embeddings).
 
 """
-name = "embeddings"
+name = "embeddings-prep"

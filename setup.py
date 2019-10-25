@@ -7,7 +7,7 @@ with open("../embeddings/requirements.txt", "r") as fh:
     req = fh.read().split("\n")
 
 setuptools.setup(
-    name="embeddings",
+    name="embeddings-prep",
     version="0.1.0",
     author="sally14",
     author_email="sally14.doe@gmail.com",
